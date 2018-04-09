@@ -119,8 +119,9 @@ class Registry:
             self._client.post_json(self._uri, json)
 
     def _should_send(self, id, value):
-        s = id.tags()['statistic']
-        return not math.isnan(value) and (value > 0 or s == 'gauge')
+        max_op = 10
+        op = self._operation(id.tags())
+        return not math.isnan(value) and (value > 0 or op == max_op)
 
     def _build_string_table(self, payload, data):
         strings = {'name': 0}
@@ -166,8 +167,6 @@ class Registry:
             payload.append(value)
         else:
             logger.warn("invalid statistic for %s", id)
-
-        return
 
     def _operation(self, tags):
         addOp = 0

@@ -85,7 +85,6 @@ class RegistryTest(unittest.TestCase):
             g.set(1)
             ms = r._get_measurements()
             self.assertEqual(2, len(ms))
-            r._publish()
             r.gauge('nan').set(float('nan'))
             r.counter('zero')
             ms = r._get_measurements()
