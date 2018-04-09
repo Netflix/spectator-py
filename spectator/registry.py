@@ -3,13 +3,13 @@ import math
 import sys
 import threading
 
-from spectator.id import MeterId
 from spectator.clock import SystemClock
 from spectator.counter import Counter
-from spectator.timer import Timer
 from spectator.distsummary import DistributionSummary
 from spectator.gauge import Gauge
 from spectator.http import HttpClient
+from spectator.id import MeterId
+from spectator.timer import Timer
 
 logger = logging.getLogger("spectator.Registry")
 
@@ -74,6 +74,7 @@ class Registry:
                 config = defaultConfig
             frequency = config.get("frequency", 5.0)
             self._uri = config.get("uri", None)
+            self._common_tags = config.get("common_tags", {})
             self._client = HttpClient(self, config.get("timeout", 1))
             self._timer = RegistryTimer(frequency, self._publish)
             self._timer.start()
@@ -90,17 +91,24 @@ class Registry:
         # of data loss
         self._publish()
 
-    def _publish(self):
+    def _get_measurements(self):
         snapshot = {}
         with self._lock:
             for k, m in list(self._meters.items()):
                 # If there are no references in user code, then we expect
-                # three references to the meter: 1) meters map, 2) local
+                # four references to the meter: 1) meters map, 2) local
                 # variable in this loop, 3) internal to ref count method,
                 # and 4) internal to the garbage collector.
                 if sys.getrefcount(m) == 4:
                     del self._meters[k]
-                snapshot.update(m._measure())
+                ms = m._measure()
+                for id, value in ms.items():
+                    if self._should_send(id, value):
+                        snapshot[id] = value
+        return snapshot
+
+    def _publish(self):
+        snapshot = self._get_measurements()
 
         if logger.isEnabledFor(logging.DEBUG):
             for id, value in snapshot.items():
@@ -110,14 +118,16 @@ class Registry:
             json = self._measurements_to_json(snapshot)
             self._client.post_json(self._uri, json)
 
-    def _check_value(self, m):
-        v = m['value']
-        s = m['tags']['statistic']
-        return not math.isnan(m['value']) and (v > 0 or s == 'gauge')
+    def _should_send(self, id, value):
+        s = id.tags()['statistic']
+        return not math.isnan(value) and (value > 0 or s == 'gauge')
 
     def _build_string_table(self, payload, data):
-        strings = {}
-        strings["name"] = 0
+        strings = {'name': 0}
+        for k, v in self._common_tags.items():
+            strings[k] = 0
+            strings[v] = 0
+
         for id in data.keys():
             strings[id.name] = 0
             for k, v in id.tags().items():
@@ -142,7 +152,11 @@ class Registry:
         tags = id.tags()
         op = self._operation(tags)
         if op is not None:
-            payload.append(len(tags) + 1)
+            common_tags = self._common_tags
+            payload.append(len(tags) + 1 + len(common_tags))
+            for k, v in common_tags.items():
+                payload.append(strings[k])
+                payload.append(strings[v])
             for k, v in tags.items():
                 payload.append(strings[k])
                 payload.append(strings[v])
@@ -153,11 +167,7 @@ class Registry:
         else:
             logger.warn("invalid statistic for %s", id)
 
-        return {
-            "op": self._operation(tags),
-            "tags": tags,
-            "value": value
-        }
+        return
 
     def _operation(self, tags):
         addOp = 0
