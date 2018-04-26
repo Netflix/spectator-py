@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='netflix-spectator-py',
-    version='0.1.3',
+    version='0.1.4',
     description='Python library for reporting metrics to Atlas.',
     author='Brian Harrington',
     author_email='netflix-atlas@googlegroups.com',
