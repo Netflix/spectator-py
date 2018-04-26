@@ -1,11 +1,20 @@
 #!/usr/bin/env python
 
+import os
 from setuptools import setup
+
+
+# Utility function to read the README file.
+# https://pythonhosted.org/an_example_pypi_project/setuptools.html#setting-up-setup-py
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 setup(
     name='netflix-spectator-py',
-    version='0.1.4',
+    version='0.1.5',
     description='Python library for reporting metrics to Atlas.',
+    long_description=read('README.md'),
     author='Brian Harrington',
     author_email='netflix-atlas@googlegroups.com',
     license='Apache 2.0',

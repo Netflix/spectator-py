@@ -134,7 +134,7 @@ class Registry:
             for k, v in id.tags().items():
                 strings[k] = 0
                 strings[v] = 0
-        keys = strings.keys()
+        keys = list(strings.keys())
         keys.sort()
         payload.append(len(keys))
         payload.extend(keys)
