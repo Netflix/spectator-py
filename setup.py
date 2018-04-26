@@ -9,7 +9,7 @@ setup(
     author='Brian Harrington',
     author_email='netflix-atlas@googlegroups.com',
     license='Apache 2.0',
-    url='https://github.com/brharrington/spectator-py/',
+    url='https://github.com/netflix/spectator-py/',
     packages=['spectator'],
     classifiers=[
         # How mature is this project? Common values are
