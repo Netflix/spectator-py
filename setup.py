@@ -20,6 +20,7 @@ setup(
     license='Apache 2.0',
     url='https://github.com/netflix/spectator-py/',
     packages=['spectator'],
+    install_requires=['future'],
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
