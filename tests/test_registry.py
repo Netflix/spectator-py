@@ -148,5 +148,6 @@ class RegistryTest(unittest.TestCase):
             payload = r._measurements_to_json(ms)
 
             # sort payload so we ensure we get gauges first
-            entries = sorted(self.payload_to_entries(payload), key=lambda m: m.get('op'))
+            entries = sorted(self.payload_to_entries(payload),
+                             key=lambda m: m.get('op'))
             self.assertEqual(expected_entries, entries)
