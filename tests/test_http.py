@@ -4,7 +4,6 @@ from spectator.http import HttpClient
 import gzip
 import io
 import json
-import sys
 import threading
 import unittest
 
@@ -113,13 +112,12 @@ class RequestHandler(BaseHTTPRequestHandler):
         try:
             length = int(self.headers['Content-Length'])
             entity = io.BytesIO(self.rfile.read(length))
-            data = json.loads(gzip.GzipFile(fileobj=entity).read())
+            data = json.loads(gzip.GzipFile(fileobj=entity).read().decode())
             self.send_response(data["status"])
-            self.add_header('Content-Encoding', 'gzip')
+            self.send_header('Content-Encoding', 'gzip')
             self.end_headers()
             self.wfile.write(self._compress("received: {}".format(data)))
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             self.send_response(400)
             self.end_headers()
             msg = "error processing request: {}".format(e)

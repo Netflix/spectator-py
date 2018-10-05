@@ -24,4 +24,4 @@ class CounterTest(unittest.TestCase):
         ms = c._measure()
         self.assertEqual(len(ms), 1)
         self.assertEqual(ms[CounterTest.tid.with_stat('count')], 1)
-        self.assertEquals(c.count(), 0)
+        self.assertEqual(c.count(), 0)
