@@ -74,6 +74,7 @@ class Registry:
                 config = defaultConfig
             frequency = config.get("frequency", 5.0)
             self._uri = config.get("uri", None)
+            self._batch_size = config.get("batch_size", 10000)
             self._common_tags = config.get("common_tags", {})
             self._client = HttpClient(self, config.get("timeout", 1))
             self._timer = RegistryTimer(frequency, self._publish)
@@ -92,7 +93,7 @@ class Registry:
         self._publish()
 
     def _get_measurements(self):
-        snapshot = {}
+        snapshot = []
         with self._lock:
             for k, m in list(self._meters.items()):
                 # If there are no references in user code, then we expect
@@ -104,19 +105,26 @@ class Registry:
                 ms = m._measure()
                 for id, value in ms.items():
                     if self._should_send(id, value):
-                        snapshot[id] = value
+                        snapshot.append((id, value))
         return snapshot
+
+    def _send_batch(self, batch):
+        json = self._measurements_to_json(batch)
+        self._client.post_json(self._uri, json)
 
     def _publish(self):
         snapshot = self._get_measurements()
 
         if logger.isEnabledFor(logging.DEBUG):
-            for id, value in snapshot.items():
+            for id, value in snapshot:
                 logger.debug("reporting: %s => %f", id, value)
 
         if self._uri is not None:
-            json = self._measurements_to_json(snapshot)
-            self._client.post_json(self._uri, json)
+            i = 0
+            while i < len(snapshot):
+                end = min(i + self._batch_size, len(snapshot))
+                self._send_batch(snapshot[i:end])
+                i += self._batch_size
 
     def _should_send(self, id, value):
         max_op = 10
@@ -129,7 +137,7 @@ class Registry:
             strings[k] = 0
             strings[v] = 0
 
-        for id in data.keys():
+        for id, _ in data:
             strings[id.name] = 0
             for k, v in id.tags().items():
                 strings[k] = 0
@@ -145,7 +153,7 @@ class Registry:
     def _measurements_to_json(self, data):
         payload = []
         strings = self._build_string_table(payload, data)
-        for id, v in data.items():
+        for id, v in data:
             self._append_measurement(strings, payload, id, v)
         return payload
 

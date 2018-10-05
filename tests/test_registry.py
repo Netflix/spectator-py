@@ -143,8 +143,10 @@ class RegistryTest(unittest.TestCase):
                 'value': 42,
                 'tags': {'nf.app': 'app', 'name': 'g', 'statistic': 'gauge'}
             }
-            expected_entries = [expected_counter, expected_gauge]
+            expected_entries = [expected_gauge, expected_counter]
 
             payload = r._measurements_to_json(ms)
-            entries = self.payload_to_entries(payload)
+
+            # sort payload so we ensure we get gauges first
+            entries = sorted(self.payload_to_entries(payload), key=lambda m: m.get('op'))
             self.assertEqual(expected_entries, entries)
