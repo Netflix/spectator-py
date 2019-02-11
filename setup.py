@@ -19,7 +19,7 @@ setup(
     author_email='netflix-atlas@googlegroups.com',
     license='Apache 2.0',
     url='https://github.com/netflix/spectator-py/',
-    packages=['spectator'],
+    packages=['spectator', 'spectator.histogram'],
     install_requires=['future'],
     classifiers=[
         # How mature is this project? Common values are
