@@ -20,7 +20,7 @@ class PercentileBucketsTest(unittest.TestCase):
 
         self.assertEqual(25, PercentileBuckets.index_of(87))
 
-        self.assertEquals(
+        self.assertEqual(
             PercentileBuckets.length() - 1,
             PercentileBuckets.index_of(self._max_value))
 
@@ -29,7 +29,7 @@ class PercentileBucketsTest(unittest.TestCase):
         for i in range(10000):
             v = random.randint(-self._max_value, self._max_value)
             if v < 0:
-                self.assertEquals(0, PercentileBuckets.index_of(v))
+                self.assertEqual(0, PercentileBuckets.index_of(v))
             else:
                 b = PercentileBuckets.get(PercentileBuckets.index_of(v))
                 self.assertTrue(v <= b)
@@ -39,13 +39,13 @@ class PercentileBucketsTest(unittest.TestCase):
         for i in range(10000):
             v = random.randint(-self._max_value, self._max_value)
             if v < 0:
-                self.assertEquals(1, PercentileBuckets.bucket(v))
+                self.assertEqual(1, PercentileBuckets.bucket(v))
             else:
                 b = PercentileBuckets.bucket(v)
                 self.assertTrue(v <= b)
 
     def __assert_equals(self, vs1, vs2, threshold):
-        self.assertEquals(len(vs1), len(vs2))
+        self.assertEqual(len(vs1), len(vs2))
         for i in range(len(vs1)):
             v1 = vs1[i]
             v2 = vs2[i]
