@@ -1,4 +1,5 @@
 from spectator import Registry
+from spectator import ManualClock
 from spectator.histogram import PercentileBuckets
 from spectator.histogram import PercentileDistributionSummary
 from spectator.histogram import PercentileTimer
@@ -110,6 +111,14 @@ class PercentileTimerTest(unittest.TestCase):
     def test_with_threshold_2(self):
         r = Registry()
         t = PercentileTimer(r, "test", min=0, max=100)
+        self._check_percentiles(t, 0)
+
+    def test_stopwatch(self):
+        clock = ManualClock()
+        r = Registry(clock=clock)
+        t = PercentileTimer(r, "test", min=0, max=100)
+        with t.stopwatch():
+            clock.set_monotonic_time(1.0)
         self._check_percentiles(t, 0)
 
 

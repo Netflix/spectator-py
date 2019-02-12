@@ -432,6 +432,7 @@ class PercentileTimer:
             self._tags = tags
         self._min = min * 1e9
         self._max = max * 1e9
+        self._clock = registry.clock()
         self._timer = self._registry.timer(self._name, self._tags)
         self._counters = [
             self._counter_for(i) for i in range(PercentileBuckets.length())
