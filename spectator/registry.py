@@ -4,12 +4,13 @@ import sys
 import threading
 
 from spectator.clock import SystemClock
-from spectator.counter import Counter
-from spectator.distsummary import DistributionSummary
-from spectator.gauge import Gauge
+from spectator.counter import Counter, NoopCounter
+from spectator.distsummary import DistributionSummary, NoopDistributionSummary
+from spectator.gauge import Gauge, NoopGauge
 from spectator.http import HttpClient
 from spectator.id import MeterId
-from spectator.timer import Timer
+from spectator.timer import Timer, NoopTimer
+
 
 logger = logging.getLogger("spectator.Registry")
 
@@ -22,6 +23,10 @@ except:
 
 
 class Registry:
+    noopGauge = NoopGauge()
+    noopCounter = NoopCounter()
+    noopDistributionSummary = NoopDistributionSummary()
+    noopTimer = NoopTimer()
 
     def __init__(self, clock=SystemClock()):
         self._clock = clock
@@ -32,7 +37,7 @@ class Registry:
     def clock(self):
         return self._clock
 
-    def _new_meter(self, name, tags, meterFactory):
+    def _new_meter(self, name, tags, meterFactory, meterCls, defaultIns):
         with self._lock:
             if tags is None:
                 tags = {}
@@ -41,19 +46,29 @@ class Registry:
             if meter is None:
                 meter = meterFactory(meterId)
                 self._meters[meterId] = meter
+            elif not isinstance(meter, meterCls):
+                logger.warning("Meter is already defined as type %s. "
+                               "Please use a unique name or tags",
+                               meter.__class__.__name__)
+                return defaultIns
             return meter
 
     def counter(self, name, tags=None):
-        return self._new_meter(name, tags, lambda id: Counter(id))
+        return self._new_meter(name, tags, lambda id: Counter(id), Counter,
+                               self.noopCounter)
 
     def timer(self, name, tags=None):
-        return self._new_meter(name, tags, lambda id: Timer(id, self._clock))
+        return self._new_meter(name, tags, lambda id: Timer(id, self._clock),
+                               Timer, self.noopTimer)
 
     def distribution_summary(self, name, tags=None):
-        return self._new_meter(name, tags, lambda id: DistributionSummary(id))
+        return self._new_meter(name, tags, lambda id: DistributionSummary(id),
+                               DistributionSummary,
+                               self.noopDistributionSummary)
 
     def gauge(self, name, tags=None):
-        return self._new_meter(name, tags, lambda id: Gauge(id))
+        return self._new_meter(name, tags, lambda id: Gauge(id), Gauge,
+                               self.noopGauge)
 
     def __iter__(self):
         with self._lock:
@@ -70,7 +85,7 @@ class Registry:
                 logger.info("config not specified, using default")
                 config = defaultConfig
             elif type(config) is not dict:
-                logger.warn("invalid config specified, using default")
+                logger.warning("invalid config specified, using default")
                 config = defaultConfig
             frequency = config.get("frequency", 5.0)
             self._uri = config.get("uri", None)
@@ -174,7 +189,7 @@ class Registry:
             payload.append(op)
             payload.append(value)
         else:
-            logger.warn("invalid statistic for %s", id)
+            logger.warning("invalid statistic for %s", id)
 
     def _operation(self, tags):
         addOp = 0

@@ -1,7 +1,37 @@
+from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
+
 from spectator.atomicnumber import AtomicNumber
 
 
-class Counter:
+class AbstractCounter(with_metaclass(ABCMeta)):
+
+    @abstractmethod
+    def increment(self, amount=1):
+        pass
+
+    @abstractmethod
+    def count(self):
+        pass
+
+    @abstractmethod
+    def _measure(self):
+        pass
+
+
+class NoopCounter(AbstractCounter):
+
+    def increment(self, amount=1):
+        pass
+
+    def count(self):
+        return 0
+
+    def _measure(self):
+        return {}
+
+
+class Counter(AbstractCounter):
 
     def __init__(self, meterId):
         self.meterId = meterId

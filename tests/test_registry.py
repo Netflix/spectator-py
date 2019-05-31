@@ -1,8 +1,7 @@
 import builtins
 import unittest
 
-from spectator import ManualClock
-from spectator import Registry
+from spectator import ManualClock, Registry
 
 
 class RegistryTest(unittest.TestCase):
@@ -151,3 +150,38 @@ class RegistryTest(unittest.TestCase):
             entries = sorted(self.payload_to_entries(payload),
                              key=lambda m: m.get('op'))
             self.assertEqual(expected_entries, entries)
+
+    def test_duplicate_gauge_different_type(self):
+        r = Registry()
+        c = r.counter("check_value", tags=dict(taga="a"))
+        g = r.gauge("check_value", tags=dict(taga="a"))
+        self.assertIsNot(c, g)
+        self.assertIs(g, r.noopGauge)
+
+    def test_duplicate_counter_different_type(self):
+        r = Registry()
+        g = r.gauge("check_value", tags=dict(taga="a"))
+        c = r.counter("check_value", tags=dict(taga="a"))
+        self.assertIsNot(g, c)
+        self.assertIs(c, r.noopCounter)
+
+    def test_duplicate_timer_different_type(self):
+        r = Registry()
+        c = r.counter("check_value")
+        t = r.timer("check_value")
+        self.assertIsNot(c, t)
+        self.assertIs(t, r.noopTimer)
+
+    def test_duplicate_distro_different_type(self):
+        r = Registry()
+        c = r.counter("check_value")
+        d = r.distribution_summary("check_value")
+        self.assertIsNot(c, d)
+        self.assertIs(d, r.noopDistributionSummary)
+
+    def test_timer_and_counter_same_name_different_tags(self):
+        r = Registry()
+        c = r.counter("check_value", tags=dict(tag="a"))
+        t = r.timer("check_value", tags=dict(tag="b"))
+        self.assertIsNot(c, t)
+        self.assertIsNot(t, r.noopTimer)

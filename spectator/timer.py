@@ -1,8 +1,52 @@
+from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
+
 from spectator.atomicnumber import AtomicNumber
 from spectator.clock import SystemClock
 
 
-class Timer:
+class AbstractTimer(with_metaclass(ABCMeta)):
+
+    @abstractmethod
+    def record(self, amount):
+        pass
+
+    @abstractmethod
+    def stopwatch(self):
+        pass
+
+    @abstractmethod
+    def count(self):
+        pass
+
+    @abstractmethod
+    def total_time(self):
+        pass
+
+    @abstractmethod
+    def _measure(self):
+        pass
+
+
+class NoopTimer(AbstractTimer):
+
+    def record(self, amount):
+        pass
+
+    def stopwatch(self):
+        return StopWatch(self)
+
+    def count(self):
+        return 0
+
+    def total_time(self):
+        return 0
+
+    def _measure(self):
+        return {}
+
+
+class Timer(AbstractTimer):
 
     def __init__(self, meterId, clock=SystemClock()):
         self.meterId = meterId
