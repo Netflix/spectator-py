@@ -1,7 +1,37 @@
+from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
+
 from spectator.atomicnumber import AtomicNumber
 
 
-class Gauge:
+class AbstractGauge(with_metaclass(ABCMeta)):
+
+    @abstractmethod
+    def get(self):
+        pass
+
+    @abstractmethod
+    def set(self, value):
+        pass
+
+    @abstractmethod
+    def _measure(self):
+        pass
+
+
+class NoopGauge(AbstractGauge):
+
+    def get(self):
+        return 0
+
+    def set(self, value):
+        pass
+
+    def _measure(self):
+        return {}
+
+
+class Gauge(AbstractGauge):
 
     def __init__(self, meterId):
         self.meterId = meterId

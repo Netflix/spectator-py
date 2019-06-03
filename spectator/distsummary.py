@@ -1,7 +1,44 @@
+from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
+
 from spectator.atomicnumber import AtomicNumber
 
 
-class DistributionSummary:
+class AbstractDistributionSummary(with_metaclass(ABCMeta)):
+
+    @abstractmethod
+    def record(self, amount):
+        pass
+
+    @abstractmethod
+    def count(self):
+        pass
+
+    @abstractmethod
+    def total_amount(self):
+        pass
+
+    @abstractmethod
+    def _measure(self):
+        pass
+
+
+class NoopDistributionSummary(AbstractDistributionSummary):
+
+    def record(self, amount):
+        pass
+
+    def count(self):
+        return 0
+
+    def total_amount(self):
+        return 0
+
+    def _measure(self):
+        return {}
+
+
+class DistributionSummary(AbstractDistributionSummary):
 
     def __init__(self, meterId):
         self.meterId = meterId
