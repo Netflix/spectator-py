@@ -27,6 +27,9 @@ class Registry:
     noopCounter = NoopCounter()
     noopDistributionSummary = NoopDistributionSummary()
     noopTimer = NoopTimer()
+    addOp = 0
+    maxOp = 10
+    counterStats = {"count", "totalAmount", "totalTime", "totalOfSquares", "percentile"}
 
     def __init__(self, clock=SystemClock()):
         self._clock = clock
@@ -175,37 +178,24 @@ class Registry:
     def _append_measurement(self, strings, payload, id, value):
         tags = id.tags()
         op = self._operation(tags)
-        if op is not None:
-            common_tags = self._common_tags
-            payload.append(len(tags) + 1 + len(common_tags))
-            for k, v in common_tags.items():
-                payload.append(strings[k])
-                payload.append(strings[v])
-            for k, v in tags.items():
-                payload.append(strings[k])
-                payload.append(strings[v])
-            payload.append(strings["name"])
-            payload.append(strings[id.name])
-            payload.append(op)
-            payload.append(value)
-        else:
-            logger.warning("invalid statistic for %s", id)
+        common_tags = self._common_tags
+        payload.append(len(tags) + 1 + len(common_tags))
+        for k, v in common_tags.items():
+            payload.append(strings[k])
+            payload.append(strings[v])
+        for k, v in tags.items():
+            payload.append(strings[k])
+            payload.append(strings[v])
+        payload.append(strings["name"])
+        payload.append(strings[id.name])
+        payload.append(op)
+        payload.append(value)
 
     def _operation(self, tags):
-        addOp = 0
-        maxOp = 10
-        return {
-            "count": addOp,
-            "totalAmount": addOp,
-            "totalTime": addOp,
-            "totalOfSquares": addOp,
-            "percentile": addOp,
-            "max": maxOp,
-            "gauge": maxOp,
-            "activeTasks": maxOp,
-            "duration": maxOp
-        }.get(tags['statistic'])
-
+        if tags.get('statistic') in self.counterStats:
+            return self.addOp
+        else:
+            return self.maxOp
 
 class RegistryTimer:
 
