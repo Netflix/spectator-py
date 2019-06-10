@@ -29,7 +29,8 @@ class Registry:
     noopTimer = NoopTimer()
     addOp = 0
     maxOp = 10
-    counterStats = {"count", "totalAmount", "totalTime", "totalOfSquares", "percentile"}
+    counterStats = {"count", "totalAmount", "totalTime",
+                    "totalOfSquares", "percentile"}
 
     def __init__(self, clock=SystemClock()):
         self._clock = clock
@@ -196,6 +197,7 @@ class Registry:
             return self.addOp
         else:
             return self.maxOp
+
 
 class RegistryTimer:
 
