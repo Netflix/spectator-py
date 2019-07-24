@@ -35,3 +35,7 @@ class MeterIdTest(unittest.TestCase):
         tags["b"] = "2"
         self.assertEqual(tags, {"a": "1", "b": "2"})
         self.assertEqual(id1.tags(), {"a": "1"})
+
+    def test_tags_stringify(self):
+        id1 = MeterId("foo", {"a": False, "b": 1, "c": "2"})
+        self.assertEqual(id1.tags(), {"a": "False", "b": "1", "c": "2"})

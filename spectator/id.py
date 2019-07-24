@@ -1,7 +1,7 @@
 class MeterId:
     def __init__(self, name, tags={}):
         self.name = name
-        self._tags = tags.copy()
+        self._tags = self.sanitize(tags)
 
     def tags(self):
         return self._tags.copy()
@@ -31,3 +31,10 @@ class MeterId:
         items = sorted(self._tags.items())
         tagStr = ",".join(["{}={}".format(t[0], t[1]) for t in items])
         return "{}:{}".format(self.name, tagStr)
+
+    @staticmethod
+    def sanitize(tags):
+        t = {}
+        for k, v in tags.items():
+            t[str(k)] = str(v)
+        return t
