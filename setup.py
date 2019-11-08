@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name='netflix-spectator-py',
-    version='0.1.10',
+    version='0.1.11',
     description='Python library for reporting metrics to Atlas.',
     long_description=read('README.md'),
     author='Brian Harrington',
@@ -40,8 +40,8 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ]
 )
