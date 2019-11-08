@@ -1,7 +1,9 @@
-from spectator.id import MeterId
-from spectator.gauge import Gauge
 import math
 import unittest
+
+from spectator import ManualClock
+from spectator.gauge import Gauge
+from spectator.id import MeterId
 
 
 class GaugeTest(unittest.TestCase):
@@ -12,12 +14,22 @@ class GaugeTest(unittest.TestCase):
         g = Gauge(GaugeTest.tid)
         self.assertTrue(math.isnan(g.get()))
         g.set(1)
-        self.assertEqual(g.get(), 1)
+        self.assertEqual(1, g.get())
 
     def test_measure(self):
         g = Gauge(GaugeTest.tid)
         g.set(42)
         ms = g._measure()
+        self.assertEqual(42, g.get())
+        self.assertEqual(1, len(ms))
+        self.assertEqual(42, ms[GaugeTest.tid.with_stat('gauge')])
+
+    def test_ttl_reset(self):
+        clock = ManualClock()
+        g = Gauge(GaugeTest.tid, clock=clock)
+        g.set(42)
+        clock.set_wall_time(g.ttl + 1)
+        ms = g._measure()
         self.assertTrue(math.isnan(g.get()))
-        self.assertEqual(len(ms), 1)
-        self.assertEqual(ms[GaugeTest.tid.with_stat('gauge')], 42)
+        self.assertEqual(1, len(ms))
+        self.assertEqual(42, ms[GaugeTest.tid.with_stat('gauge')])

@@ -71,7 +71,7 @@ class Registry:
                                self.noopDistributionSummary)
 
     def gauge(self, name, tags=None):
-        return self._new_meter(name, tags, lambda id: Gauge(id), Gauge,
+        return self._new_meter(name, tags, lambda id: Gauge(id, self._clock), Gauge,
                                self.noopGauge)
 
     def __iter__(self):
@@ -112,19 +112,32 @@ class Registry:
         self._publish()
 
     def _get_measurements(self):
+        """
+        If there are no references in user code, then we expect four references to a meter:
+
+            1) meters map,
+            2) local variable in the for loop,
+            3) internal to ref count method, and
+            4) internal to the garbage collector.
+
+        """
         snapshot = []
+
         with self._lock:
             for k, m in list(self._meters.items()):
-                # If there are no references in user code, then we expect
-                # four references to the meter: 1) meters map, 2) local
-                # variable in this loop, 3) internal to ref count method,
-                # and 4) internal to the garbage collector.
                 if sys.getrefcount(m) == 4:
-                    del self._meters[k]
+                    if m.__class__.__name__ == 'Gauge':
+                        if m._has_expired():
+                            del self._meters[k]
+                    else:
+                        del self._meters[k]
+
                 ms = m._measure()
+
                 for id, value in ms.items():
                     if self._should_send(id, value):
                         snapshot.append((id, value))
+
         return snapshot
 
     def _send_batch(self, batch):
