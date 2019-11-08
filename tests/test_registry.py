@@ -77,16 +77,51 @@ class RegistryTest(unittest.TestCase):
 
     def test_get_measurements_only_useful(self):
         r = Registry()
+
         with r.start():
+            # meters with reference held
             c = r.counter('counter')
             g = r.gauge('gauge')
-
             c.increment()
             g.set(1)
             ms = r._get_measurements()
             self.assertEqual(2, len(ms))
-            r.gauge('nan').set(float('nan'))
-            r.counter('zero')
+
+            # meters without reference held; only the non-nan gauge will report
+            r.gauge('gauge-nan').set(float('nan'))
+            r.counter('counter-zero')
+            ms = r._get_measurements()
+            self.assertEqual(1, len(ms))
+
+    def test_get_measurements_gauge_not_deleted_before_ttl(self):
+        clock = ManualClock()
+        r = Registry(clock=clock)
+
+        with r.start():
+            r.gauge('gauge').set(1)
+            ms = r._get_measurements()
+            self.assertEqual(1, len(ms))
+
+            # two cycles are required to delete a gauge after it expires
+            ms = r._get_measurements()
+            self.assertEqual(1, len(ms))
+            ms = r._get_measurements()
+            self.assertEqual(1, len(ms))
+
+    def test_get_measurements_gauge_deleted_after_ttl(self):
+        clock = ManualClock()
+        r = Registry(clock=clock)
+
+        with r.start():
+            r.gauge('gauge').set(1)
+            ms = r._get_measurements()
+            self.assertEqual(1, len(ms))
+
+            clock.set_wall_time(60 * 15 + 1)
+
+            # two cycles are required to delete a gauge after it expires
+            ms = r._get_measurements()
+            self.assertEqual(1, len(ms))
             ms = r._get_measurements()
             self.assertEqual(0, len(ms))
 
