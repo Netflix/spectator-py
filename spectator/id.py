@@ -9,6 +9,12 @@ class MeterId:
     def with_stat(self, v):
         return self.with_tag('statistic', v)
 
+    def with_default_stat(self, v):
+        if 'statistic' in self._tags:
+            return self
+        else:
+            return self.with_stat(v)
+
     def with_tag(self, k, v):
         tags = self._tags.copy()
         tags[k] = v

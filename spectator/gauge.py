@@ -52,7 +52,7 @@ class Gauge(AbstractGauge):
         return (self._clock.wall_time() - self._last_update.get()) > self.ttl
 
     def _measure(self):
-        id = self.meterId.with_stat('gauge')
+        id = self.meterId.with_default_stat('gauge')
 
         if self._has_expired():
             v = self._value.get_and_set(float('nan'))

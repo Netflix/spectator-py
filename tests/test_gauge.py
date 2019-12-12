@@ -33,3 +33,9 @@ class GaugeTest(unittest.TestCase):
         self.assertTrue(math.isnan(g.get()))
         self.assertEqual(1, len(ms))
         self.assertEqual(42, ms[GaugeTest.tid.with_stat('gauge')])
+
+    def test_user_statistic(self):
+        g = Gauge(GaugeTest.tid.with_stat('duration'))
+        g.set(42)
+        for id in g._measure().keys():
+            self.assertEqual('duration', id.tags()['statistic'])

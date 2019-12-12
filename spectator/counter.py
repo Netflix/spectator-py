@@ -46,5 +46,5 @@ class Counter(AbstractCounter):
 
     def _measure(self):
         return {
-            self.meterId.with_stat('count'): self._count.get_and_set(0)
+            self.meterId.with_default_stat('count'): self._count.get_and_set(0)
         }
