@@ -25,3 +25,9 @@ class CounterTest(unittest.TestCase):
         self.assertEqual(len(ms), 1)
         self.assertEqual(ms[CounterTest.tid.with_stat('count')], 1)
         self.assertEqual(c.count(), 0)
+
+    def test_user_statistic(self):
+        c = Counter(CounterTest.tid.with_stat('totalTime'))
+        c.increment()
+        for id in c._measure().keys():
+            self.assertEqual('totalTime', id.tags()['statistic'])
