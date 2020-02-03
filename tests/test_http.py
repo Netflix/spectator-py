@@ -1,11 +1,12 @@
-from spectator import Registry
-from spectator.http import HttpClient
-
 import gzip
 import io
 import json
+import logging
 import threading
 import unittest
+
+from spectator import Registry
+from spectator.http import HttpClient
 
 try:
     from BaseHTTPServer import HTTPServer
@@ -14,6 +15,9 @@ except ImportError:
     # python3
     from http.server import HTTPServer
     from http.server import BaseHTTPRequestHandler
+
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 class HttpTest(unittest.TestCase):
@@ -31,7 +35,7 @@ class HttpTest(unittest.TestCase):
     def test_do_post_ok(self):
         r = Registry()
         client = HttpClient(r)
-        client.post_json(self._uri, '{"status": 200}')
+        client.post_json(self._uri, '{"status": 200}', retry_delay=0)
         tags = {
             "mode": "http-client",
             "method": "POST",
@@ -45,7 +49,7 @@ class HttpTest(unittest.TestCase):
     def test_do_post_404(self):
         r = Registry()
         client = HttpClient(r)
-        client.post_json(self._uri, '{"status": 404}')
+        client.post_json(self._uri, '{"status": 404}', retry_delay=0)
         tags = {
             "mode": "http-client",
             "method": "POST",
@@ -56,10 +60,38 @@ class HttpTest(unittest.TestCase):
         t = r.timer("http.req.complete", tags)
         self.assertEqual(t.count(), 1)
 
+    def test_do_post_429(self):
+        r = Registry()
+        client = HttpClient(r)
+        client.post_json(self._uri, '{"status": 429}', retry_delay=0)
+        tags = {
+            "mode": "http-client",
+            "method": "POST",
+            "client": "spectator-py",
+            "status": "4xx",
+            "statusCode": "429"
+        }
+        t = r.timer("http.req.complete", tags)
+        self.assertEqual(t.count(), 1)
+
+    def test_do_post_503(self):
+        r = Registry()
+        client = HttpClient(r)
+        client.post_json(self._uri, '{"status": 503}', retry_delay=0)
+        tags = {
+            "mode": "http-client",
+            "method": "POST",
+            "client": "spectator-py",
+            "status": "5xx",
+            "statusCode": "503"
+        }
+        t = r.timer("http.req.complete", tags)
+        self.assertEqual(t.count(), 1)
+
     def test_do_post_bad_json(self):
         r = Registry()
         client = HttpClient(r)
-        client.post_json(self._uri, '{"status": ')
+        client.post_json(self._uri, '{"status": ', retry_delay=0)
         tags = {
             "mode": "http-client",
             "method": "POST",
@@ -73,7 +105,7 @@ class HttpTest(unittest.TestCase):
     def test_do_post_encode(self):
         r = Registry()
         client = HttpClient(r)
-        client.post_json(self._uri, {"status": 202})
+        client.post_json(self._uri, {"status": 202}, retry_delay=0)
         tags = {
             "mode": "http-client",
             "method": "POST",
@@ -88,7 +120,7 @@ class HttpTest(unittest.TestCase):
         self.tearDown()
         r = Registry()
         client = HttpClient(r)
-        client.post_json(self._uri, "{}")
+        client.post_json(self._uri, "{}", retry_delay=0)
         tags = {
             "mode": "http-client",
             "method": "POST",
@@ -102,7 +134,8 @@ class HttpTest(unittest.TestCase):
 
 class RequestHandler(BaseHTTPRequestHandler):
 
-    def _compress(self, entity):
+    @staticmethod
+    def _compress(entity):
         out = io.BytesIO()
         with gzip.GzipFile(fileobj=out, mode="w") as f:
             f.write(entity.encode('utf-8'))
@@ -122,3 +155,6 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             msg = "error processing request: {}".format(e)
             self.wfile.write(msg.encode('utf-8'))
+
+    def log_message(self, format, *args):
+        pass
