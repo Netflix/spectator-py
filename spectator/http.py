@@ -2,7 +2,7 @@ import gzip
 import io
 import json
 import logging
-import sys
+import time
 
 try:
     import urllib2
@@ -19,33 +19,39 @@ class HttpClient:
         self._registry = registry
         self._timeout = timeout
 
-    def _compress(self, entity):
+    @staticmethod
+    def _compress(entity):
         out = io.BytesIO()
         with gzip.GzipFile(fileobj=out, mode="w") as f:
             f.write(entity.encode('utf-8'))
         return out.getvalue()
 
-    def _add_status_tags(self, tags, code):
+    @staticmethod
+    def _add_status_tags(tags, code):
         tags["statusCode"] = "{}".format(code)
         tags["status"] = "{}xx".format(int(code / 100))
 
-    def _read_response(self, response):
+    @staticmethod
+    def _read_response(response):
         if response.info().get('Content-Encoding') == 'gzip':
             buf = io.BytesIO(response.read())
             f = gzip.GzipFile(fileobj=buf)
-            return f.read()
+            return f.read().decode()
         else:
-            return response.read()
+            return response.read().decode()
 
-    def _read_error(self, response):
+    @staticmethod
+    def _read_error(response):
         if response.headers.get('Content-Encoding', 'identity') == 'gzip':
             buf = io.BytesIO(response.read())
             f = gzip.GzipFile(fileobj=buf)
-            return f.read()
+            return f.read().decode()
         else:
-            return response.read()
+            return response.read().decode()
 
-    def post_json(self, uri, data):
+    def post_json(self, uri, data, retry_delay=3):
+        max_attempts = 3
+
         headers = {
             "Accept-Encoding": "gzip",
             "Content-Encoding": "gzip",
@@ -65,28 +71,35 @@ class HttpClient:
 
         logger.debug("posting data to %s, payload: %s", uri, entity)
         request = urllib2.Request(uri, self._compress(entity), headers)
-
         start = self._registry.clock().monotonic_time()
-        try:
-            response = urllib2.urlopen(request, timeout=self._timeout)
-            self._add_status_tags(tags, response.code)
-            msg = self._read_response(response)
-            logger.debug("request succeeded (%d): %s", response.code, msg)
-        except urllib2.HTTPError as e:
-            self._add_status_tags(tags, e.code)
-            msg = self._read_error(e)
-            logger.warning("request failed (%d): %s", e.code, msg)
-        except urllib2.URLError as e:
-            error = type(e).__name__
-            tags["status"] = error
-            tags["statusCode"] = error
-            logger.warning("request failed: %s", e)
-        except:
-            e = sys.exc_info()[0]
-            error = type(e).__name__
-            tags["status"] = error
-            tags["statusCode"] = error
-            logger.warning("request failed: %s", e)
+
+        attempt = 1
+
+        while attempt <= max_attempts:
+            try:
+                response = urllib2.urlopen(request, timeout=self._timeout)
+                self._add_status_tags(tags, response.code)
+                msg = self._read_response(response)
+                logger.debug("request succeeded, code=%d attempt=%d/%d: %s", response.code, attempt, max_attempts, msg)
+                attempt = max_attempts + 1
+            except urllib2.HTTPError as e:
+                self._add_status_tags(tags, e.code)
+                msg = self._read_error(e)
+                logger.debug("request failed, code=%d attempt=%d/%d: %s", e.code, attempt, max_attempts, msg)
+                if e.code == 429 or e.code >= 500:
+                    time.sleep(retry_delay)
+                    attempt += 1
+                    if attempt > max_attempts:
+                        logger.warning("request failed, max attempts exceeded: %s", msg)
+                else:
+                    logger.warning("request failed, code=%s not retryable: %s", e.code, msg)
+                    attempt = max_attempts + 1
+            except Exception as e:
+                error = e.__class__.__name__
+                tags["status"] = error
+                tags["statusCode"] = error
+                logger.warning("request failed, attempt=%d/%d, not retrying: %s", attempt, max_attempts, e)
+                attempt = max_attempts + 1
 
         duration = self._registry.clock().monotonic_time() - start
         self._registry.timer("http.req.complete", tags).record(duration)
