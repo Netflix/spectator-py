@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import time
+import socket
 
 try:
     import urllib2
@@ -90,10 +91,33 @@ class HttpClient:
                     time.sleep(retry_delay)
                     attempt += 1
                     if attempt > max_attempts:
-                        logger.warning("request failed, max attempts exceeded: %s", msg)
+                        logger.warning("request failed, code=%d max attempts exceeded: %s", e.code, msg)
                 else:
-                    logger.warning("request failed, code=%s not retryable: %s", e.code, msg)
+                    logger.warning("request failed, code=%d not retryable: %s", e.code, msg)
                     attempt = max_attempts + 1
+            except urllib2.URLError as e:
+                if isinstance(e.reason, socket.timeout):
+                    error = "socket.timeout"
+                    tags["status"] = error
+                    tags["statusCode"] = error
+                    time.sleep(retry_delay)
+                    attempt += 1
+                    if attempt > max_attempts:
+                        logger.warning("request failed, max attempts exceeded: %s", error)
+                else:
+                    error = e.__class__.__name__
+                    tags["status"] = error
+                    tags["statusCode"] = error
+                    logger.warning("request failed, attempt=%d/%d, not retrying: %s", attempt, max_attempts, e.reason)
+                    attempt = max_attempts + 1
+            except socket.timeout:
+                error = "socket.timeout"
+                tags["status"] = error
+                tags["statusCode"] = error
+                time.sleep(retry_delay)
+                attempt += 1
+                if attempt > max_attempts:
+                    logger.warning("request failed, max attempts exceeded: %s", error)
             except Exception as e:
                 error = e.__class__.__name__
                 tags["status"] = error
