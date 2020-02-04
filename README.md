@@ -35,7 +35,6 @@ Supports Python >= 2.7, with Python >= 3.6 recommended.
             index-servers = pypi
 
             [pypi]
-            repository: https://pypi.python.org/pypi
             username: $PYPI_USERNAME
             EOF
 
