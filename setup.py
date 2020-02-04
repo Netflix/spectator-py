@@ -15,6 +15,7 @@ setup(
     version='0.1.13',
     description='Python library for reporting metrics to Atlas.',
     long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     author='Brian Harrington',
     author_email='netflix-atlas@googlegroups.com',
     license='Apache 2.0',
