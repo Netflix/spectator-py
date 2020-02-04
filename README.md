@@ -64,7 +64,7 @@ Supports Python >= 2.7, with Python >= 3.6 recommended.
 package and upload it to [PyPI].
 
         git checkout $TAG
-        python3.6 setup.py sdist bdist_wheel
+        python3 setup.py sdist bdist_wheel
         twine check dist/*
         twine upload dist/*
 
