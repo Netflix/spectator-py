@@ -1,18 +1,60 @@
 
-# Spectator for Python
+[![Build Status](https://travis-ci.org/Netflix/spectator-py.svg)](https://travis-ci.org/Netflix/spectator-py/builds)
 
-> :warning: Experimental
+## Introduction
 
-This is a Python port of the [Spectator] library for Java. Currently this is an experiment
-to help determine the level of effort to support another language.
+Python port of the [Spectator] library for Java.
+
+See the Spectator [documentation] for an overview of core concepts and details on [usage].
+
+Supports Python >= 2.7, with Python >= 3.6 recommended.
 
 [Spectator]: https://github.com/Netflix/spectator/
+[documentation]: https://netflix.github.io/atlas-docs/spectator/
+[usage]: https://netflix.github.io/atlas-docs/spectator/lang/py/usage/
 
-## Requirements
+## Local Development
 
-* Python 2.7 or higher
+* Install [pyenv](https://github.com/pyenv/pyenv), possibly with [Homebrew](https://brew.sh/).
+* Install Python versions: 2.7, 3.6, 3.7, and 3.8. Enable all versions globally.
+* Make changes and add tests.
+* `tox`
 
-## Links
+## Release Process
 
-* [Documentation](https://netflix.github.io/atlas-docs/)
-* [![Build Status](https://travis-ci.org/Netflix/spectator-py.svg)](https://travis-ci.org/Netflix/spectator-py/builds)
+1. Pre-Requisites.
+
+    1. Install packaging tools.
+
+            pip3 install setuptools wheel twine
+
+    1. Configure [PyPI] username.
+
+            cat >~/.pypirc <<EOF
+            [distutils]
+            index-servers = pypi
+
+            [pypi]
+            repository: https://pypi.python.org/pypi
+            username: $PYPI_USERNAME
+            EOF
+
+1. Bump the version number in [setup.py](./setup.py).
+
+1. Tag the repo and write release notes. The goal is for the [releases] page to be readable.
+
+1. On your local machine, checkout the tag and run the following command, which will build the
+package and upload it to [PyPI].
+
+        git checkout $TAG
+        python3.6 setup.py sdist bdist_wheel
+        twine check dist/*
+        twine upload dist/*
+
+Example release commits:
+
+* [#23](https://github.com/Netflix/spectator-py/commit/5f8ed9dc14ff97315bf579c8d431a00a17037fc0)
+* [#24](https://github.com/Netflix/spectator-py/commit/10bf2d0345175f014035d36adb15e2d6ae69e10c)
+
+[PyPI]: https://pypi.org/project/netflix-spectator-py/
+[releases]: https://github.com/Netflix/spectator-py/releases
