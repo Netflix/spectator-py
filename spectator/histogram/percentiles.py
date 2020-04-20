@@ -434,9 +434,9 @@ class PercentileTimer:
         self._max = max * 1e9
         self._clock = registry.clock()
         self._timer = self._registry.timer(self._name, self._tags)
-        self._counters = [
-            self._counter_for(i) for i in range(PercentileBuckets.length())
-        ]
+
+        # Lazily populated when percentile() is called
+        self._counters = None
 
     def _counter_for(self, i):
         p = PercentileTimer._tag_values[i]
@@ -454,7 +454,7 @@ class PercentileTimer:
     def record(self, amount):
         self._timer.record(amount)
         nanos = self._restrict(amount)
-        self._counters[PercentileBuckets.index_of(nanos)].increment()
+        self._counter_for(PercentileBuckets.index_of(nanos)).increment()
 
     def stopwatch(self):
         return StopWatch(self)
@@ -466,6 +466,11 @@ class PercentileTimer:
         return self._timer.total_time()
 
     def percentile(self, p):
+        if self._counters is None:
+            self._counters = [
+                self._counter_for(i) for i in range(PercentileBuckets.length())
+            ]
+
         counts = [c.count() for c in self._counters]
         v = PercentileBuckets.percentile(counts, p)
         return v / 1e9
