@@ -154,6 +154,7 @@ Timers will keep track of the following statistics as they are used:
 1. On your local machine, checkout the tag and run the following command, which will build the
 package and upload it to [PyPI].
 
+        rm -rf dist
         git checkout $TAG
         python3 setup.py sdist bdist_wheel
         twine check dist/*
