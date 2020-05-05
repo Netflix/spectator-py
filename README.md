@@ -25,6 +25,25 @@ from spectator import GlobalRegistry
 
 Once the `GlobalRegistry` is imported, it is used to create and manage Meters.
 
+## Working with IDs
+
+The IDs used for looking up a meter in the `GlobalRegistry` consist of a name and a set of tags.
+IDs will be consumed by users many times after the data has been reported, so they should be
+chosen thoughtfully, while considering how they will be used. See the [naming conventions] page
+for general guidelines.
+
+IDs are immutable, so they can be freely passed around and used in a concurrent context. Tags can
+be added to an ID when it is created, to track the dimensionality of the metric. All tag keys and
+values must be strings. For example, if you want to keep track of the number of successful requests,
+you must cast integers to strings.
+
+```python
+requests_id = GlobalRegistry.counter('server.numRequests', {'statusCode': str(200)})
+requests_id.increment()
+```
+
+[naming conventions]: https://netflix.github.io/spectator/en/latest/intro/conventions/
+
 ## Meter Types
 
 ### Counters
