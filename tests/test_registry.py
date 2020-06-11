@@ -153,7 +153,7 @@ class RegistryTest(unittest.TestCase):
             num_consumed, entry = self.get_entry(strings, payload[idx:])
             if num_consumed == 0:
                 remaining = payload[idx:]
-                self.fail("index %d - remaining %s".format(idx, remaining))
+                self.fail("index {} - remaining {}".format(idx, remaining))
             entries.append(entry)
             idx += num_consumed
 

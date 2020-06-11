@@ -7,7 +7,7 @@ Python port of the [Spectator] library for Java.
 
 See the Spectator [documentation] for an overview of core concepts and details on [usage].
 
-Supports Python >= 2.7, with Python >= 3.6 recommended.
+Supports Python >= 3.6.
 
 [Spectator]: https://github.com/Netflix/spectator/
 [documentation]: https://netflix.github.io/atlas-docs/spectator/
