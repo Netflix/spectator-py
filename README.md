@@ -7,7 +7,7 @@ Python port of the [Spectator] library for Java.
 
 See the Spectator [documentation] for an overview of core concepts and details on [usage].
 
-Supports Python >= 3.6.
+Supports Python >= 3.5, which is the oldest system Python 3 available on our commonly used OSes.
 
 [Spectator]: https://github.com/Netflix/spectator/
 [documentation]: https://netflix.github.io/atlas-docs/spectator/
@@ -16,7 +16,7 @@ Supports Python >= 3.6.
 ## Local Development
 
 * Install [pyenv](https://github.com/pyenv/pyenv), possibly with [Homebrew](https://brew.sh/).
-* Install Python versions: 3.6, 3.7, and 3.8. Enable all versions globally.
+* Install Python versions: 3.5, 3.6, 3.7, and 3.8. Enable all versions globally.
 * Make changes and add tests.
 * `tox`
 
