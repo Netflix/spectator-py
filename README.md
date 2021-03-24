@@ -9,6 +9,11 @@ See the Spectator [documentation] for an overview of core concepts and details o
 
 Supports Python >= 3.5, which is the oldest system Python 3 available on our commonly used OSes.
 
+Note that there is a risk of deadlock if you are running Python 3.6 or lower and using 
+`os.fork()` or using a library that will fork the process 
+(see [this section](#concurrent-usage-under-older-python) for workarounds),
+so **we recommend using Python >= 3.7**
+
 [Spectator]: https://github.com/Netflix/spectator/
 [documentation]: https://netflix.github.io/atlas-docs/spectator/
 [usage]: https://netflix.github.io/atlas-docs/spectator/lang/py/usage/
@@ -54,7 +59,9 @@ from spectator import GlobalRegistry
 
 Once the `GlobalRegistry` is imported, it is used to create and manage Meters.
 
-### Concurrent Usage
+### Concurrent Usage Under Older Python
+
+> :warning: **Use Python 3.7+ if possible**: But if you can't, here's a workaround to prevent deadlocks
 
 There is a known issue in Python where forking a process after a thread is started can lead to
 deadlocks. This is commonly seen when using the `multiprocessing` module with default settings.
@@ -83,6 +90,8 @@ WSGI_GUNICORN_PRELOAD = undef
 [Gunicorn]: https://gunicorn.org/
 
 #### Task Worker Forking
+
+> :warning: **Use Python 3.7+ if possible**: But if you can't, here's a workaround to prevent deadlocks
 
 For other pre-fork worker processing frameworks, such as [huey], you need to be careful about how
 and when you start the `GlobalRegistry` to avoid deadlocks in the background publish thread. You
@@ -120,6 +129,8 @@ workers, to help ensure that it is not started when the module is loaded.
 
 #### Generic Multiprocessing
 
+> :warning: **Use Python 3.7+ if possible**: But if you can't, here's a workaround to prevent deadlocks
+
 In Python 3, you can configure the start method to `spawn` for `multiprocessing`. This will cause
 the module to do a `fork()` followed by an `execve()` to start a brand new Python process.
 
@@ -130,7 +141,7 @@ from multiprocessing import set_start_method
 set_start_method("spawn")
 ```
 
-To configure thid option within a context:
+To configure this option within a context:
 
 ```python
 from multiprocessing import get_context
