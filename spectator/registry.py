@@ -101,12 +101,29 @@ class Registry:
             logger.debug("registry started with config: %s", config)
             return RegistryStopper(self)
 
-    def stop(self):
+    def clear_meters_and_start(self):
+        """
+        This is called after a fork in the child process
+        to clear the cloned `_meters` and prevent duplicates
+        (the `_meters` are copied with the process
+        during the forking)
+        """
+        self._meters = {}
+        self.start()
+
+    def stop_without_publish(self):
+        """
+        This is called before a fork to prevent a potential deadlock.
+        It cancels the background timer thread. After the fork, the timer
+        thread is restarted in the main and cloned processes.
+        """
         if self._started:
-            logger.info("stopping registry")
+            logger.debug("stopping log registry")
             self._timer.cancel()
             self._started = False
 
+    def stop(self):
+        self.stop_without_publish()
         # Even if not started, attempt to flush data to minimize risk
         # of data loss
         self._publish()
