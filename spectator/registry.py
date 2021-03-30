@@ -251,7 +251,10 @@ class RegistryTimer:
 
     def cancel(self):
         self._cancelled.set()
-        self._thread.join()
+        try:
+            self._thread.join()
+        except RuntimeError:
+            pass
 
 
 class RegistryStopper:
