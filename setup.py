@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name='netflix-spectator-py',
-    version='0.1.15',
+    version='0.1.16',
     description='Python library for reporting metrics to Atlas.',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
