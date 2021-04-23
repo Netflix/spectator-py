@@ -118,7 +118,6 @@ class Registry:
         thread is restarted in the main and cloned processes.
         """
         if self._started:
-            logger.debug("stopping log registry")
             self._timer.cancel()
             self._started = False
 
@@ -126,7 +125,7 @@ class Registry:
         self.stop_without_publish()
         # Even if not started, attempt to flush data to minimize risk
         # of data loss
-        self._publish()
+        self._publish(disable_logging=True)
 
     def _get_measurements(self):
         """
@@ -157,14 +156,14 @@ class Registry:
 
         return snapshot
 
-    def _send_batch(self, batch):
+    def _send_batch(self, batch, disable_logging=False):
         json = self._measurements_to_json(batch)
-        self._client.post_json(self._uri, json)
+        self._client.post_json(self._uri, json, disable_logging)
 
-    def _publish(self):
+    def _publish(self, disable_logging=False):
         snapshot = self._get_measurements()
 
-        if logger.isEnabledFor(logging.DEBUG):
+        if not disable_logging and logger.isEnabledFor(logging.DEBUG):
             for id, value in snapshot:
                 logger.debug("reporting: %s => %f", id, value)
 

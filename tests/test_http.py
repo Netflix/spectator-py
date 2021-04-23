@@ -131,6 +131,11 @@ class HttpTest(unittest.TestCase):
         t = r.timer("http.req.complete", tags)
         self.assertEqual(t.count(), 1)
 
+    def test_do_post_no_logging(self):
+        r = Registry()
+        client = HttpClient(r)
+        client.post_json(self._uri, '{"status": 429}', retry_delay=0, disable_logging=False)
+
 
 class RequestHandler(BaseHTTPRequestHandler):
 

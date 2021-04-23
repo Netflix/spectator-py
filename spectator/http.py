@@ -49,7 +49,7 @@ class HttpClient:
         else:
             return response.read().decode()
 
-    def post_json(self, uri, data, retry_delay=3):
+    def post_json(self, uri, data, retry_delay=3, disable_logging=False):
         max_attempts = 3
 
         headers = {
@@ -69,7 +69,8 @@ class HttpClient:
         else:
             entity = json.dumps(data)
 
-        logger.debug("posting data to %s, payload: %s", uri, entity)
+        if not disable_logging and logger.isEnabledFor(logging.DEBUG):
+            logger.debug("posting data to %s, payload: %s", uri, entity)
         request = urllib2.Request(uri, self._compress(entity), headers)
         start = self._registry.clock().monotonic_time()
 
@@ -80,25 +81,30 @@ class HttpClient:
                 response = urllib2.urlopen(request, timeout=self._timeout)
                 self._add_status_tags(tags, response.code)
                 msg = self._read_response(response)
-                logger.debug("request succeeded, code=%d attempt=%d/%d: %s", response.code, attempt, max_attempts, msg)
+                if not disable_logging and logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("request succeeded, code=%d attempt=%d/%d: %s", response.code, attempt, max_attempts, msg)
                 attempt = max_attempts + 1
             except urllib2.HTTPError as e:
                 self._add_status_tags(tags, e.code)
                 msg = self._read_error(e)
-                logger.debug("request failed, code=%d attempt=%d/%d: %s", e.code, attempt, max_attempts, msg)
+                if not disable_logging and logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("request failed, code=%d attempt=%d/%d: %s", e.code, attempt, max_attempts, msg)
                 if e.code == 429 or e.code >= 500:
                     time.sleep(retry_delay)
                     attempt += 1
                     if attempt > max_attempts:
-                        logger.warning("request failed, max attempts exceeded: %s", msg)
+                        if not disable_logging:
+                            logger.warning("request failed, max attempts exceeded: %s", msg)
                 else:
-                    logger.warning("request failed, code=%s not retryable: %s", e.code, msg)
+                    if not disable_logging:
+                        logger.warning("request failed, code=%s not retryable: %s", e.code, msg)
                     attempt = max_attempts + 1
             except Exception as e:
                 error = e.__class__.__name__
                 tags["status"] = error
                 tags["statusCode"] = error
-                logger.warning("request failed, attempt=%d/%d, not retrying: %s", attempt, max_attempts, e)
+                if not disable_logging:
+                    logger.warning("request failed, attempt=%d/%d, not retrying: %s", attempt, max_attempts, e)
                 attempt = max_attempts + 1
 
         duration = self._registry.clock().monotonic_time() - start
