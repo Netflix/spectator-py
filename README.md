@@ -1,6 +1,4 @@
-
-![PR Build](https://github.com/Netflix/spectator-py/actions/workflows/pr/badge.svg)
-![Snapshot Build](https://github.com/Netflix/spectator-py/actions/workflows/snapshot/badge.svg)
+[![Snapshot](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml/badge.svg)](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml)
 
 ## Introduction
 
