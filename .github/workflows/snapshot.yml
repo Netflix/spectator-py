@@ -24,6 +24,4 @@ jobs:
           pip install tox
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run Tox
-        run: |
-          export TOXENV=py${{ matrix.python-version }}
-          tox
+        run: TOXENV=py tox
