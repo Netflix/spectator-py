@@ -24,6 +24,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Test with tox
-        run: |
-          tox
+      - name: Run Tox
+        # Run tox using the version of Python in `PATH`
+        run: tox -e py
