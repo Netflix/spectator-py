@@ -1,5 +1,6 @@
 
-[![Build Status](https://travis-ci.org/Netflix/spectator-py.svg)](https://travis-ci.org/Netflix/spectator-py/builds)
+![PR Build](https://github.com/Netflix/spectator-py/actions/workflows/pr/badge.svg)
+![Snapshot Build](https://github.com/Netflix/spectator-py/actions/workflows/snapshot/badge.svg)
 
 ## Introduction
 
