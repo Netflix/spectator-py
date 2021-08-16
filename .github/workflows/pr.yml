@@ -21,4 +21,6 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run Tox
         # Run tox using the version of Python in `PATH`
-        run: tox -e py
+        run: |
+          sed -i'' -e s"/envlist = .*/envlist = py/g" tox.ini
+          tox -e py
