@@ -17,7 +17,7 @@ logger = logging.getLogger("spectator.Registry")
 try:
     from spectatorconfig import default_config
     defaultConfig = default_config()
-    logger.debug("loaded default config: %s", defaultConfig)
+    logger.info("loaded default config: %s", defaultConfig)
 except:
     defaultConfig = {}
 
