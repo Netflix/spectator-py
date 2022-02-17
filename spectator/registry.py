@@ -7,6 +7,7 @@ from spectator.clock import SystemClock
 from spectator.counter import Counter, NoopCounter
 from spectator.distsummary import DistributionSummary, NoopDistributionSummary
 from spectator.gauge import Gauge, NoopGauge
+from spectator.patterns.agegauge import AgeGauge, NoopAgeGauge
 from spectator.http import HttpClient
 from spectator.id import MeterId
 from spectator.timer import Timer, NoopTimer
@@ -23,6 +24,7 @@ except:
 
 
 class Registry:
+    noopAgeGauge = NoopAgeGauge()
     noopGauge = NoopGauge()
     noopCounter = NoopCounter()
     noopDistributionSummary = NoopDistributionSummary()
@@ -69,6 +71,10 @@ class Registry:
         return self._new_meter(name, tags, lambda id: DistributionSummary(id),
                                DistributionSummary,
                                self.noopDistributionSummary)
+
+    def age_gauge(self, name, tags=None):
+        return self._new_meter(name, tags, lambda id: AgeGauge(id, self._clock), AgeGauge,
+                               self.noopAgeGauge)
 
     def gauge(self, name, tags=None):
         return self._new_meter(name, tags, lambda id: Gauge(id, self._clock), Gauge,

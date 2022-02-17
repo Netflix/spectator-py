@@ -266,6 +266,28 @@ unbroken lines in graphs.
 If you wish to no longer report a Gauge value, then set it to `float('nan')`. This is a separate
 and distinct value from `'nan'` or `'NaN'`, which are strings.
 
+### Age Gauges
+
+A gauge which reports the number of seconds since it was last reset. The starting value of the
+gauge is zero.
+
+Age gauges are intended to be used with the Time Since Last Success alerting pattern, where a
+static threshold in number of seconds is set for a given task. Whenever this value is exceeded,
+an alert will fire. The gauge should be reset whenever a task is successful. The gauge will
+update its value every minute with the number of seconds that have elapsed since the last
+reset.
+
+```python
+last_success = GlobalRegistry.age_gauge('last_success', {'id': 'cache_refresh'})
+
+# periodically scheduled work
+while True:
+    refresh_cache()
+    if refresh_successful():
+        last_success.reset()
+    sleep(300)
+```
+
 ### Timers
 
 A Timer is used to measure how long (in seconds) some event is taking.
