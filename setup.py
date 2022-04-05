@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name="netflix-spectator-py",
-    version="0.1.18",
+    version="0.2.0",
     python_requires=">3.5",
     description="Python library for reporting metrics to the Netflix Atlas Timeseries Database.",
     long_description=read("README.md"),
@@ -20,7 +20,7 @@ setup(
     license="Apache 2.0",
     url="https://github.com/Netflix/spectator-py",
     packages=["spectator", "spectator.histogram"],
-    install_requires=["future"],
+    install_requires=[],
     extras_require={
         "dev": [
             "check-manifest",

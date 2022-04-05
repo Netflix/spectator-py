@@ -1,53 +1,64 @@
-from spectator.id import MeterId
-from spectator.distsummary import DistributionSummary
 import unittest
+
+from spectator.distsummary import DistributionSummary
+from spectator.id import MeterId
+from spectator.sidecarwriter import MemoryWriter
 
 
 class DistributionSummaryTest(unittest.TestCase):
-
     tid = MeterId("test")
 
+    def test_invalid_meter_type(self):
+        with self.assertRaises(ValueError):
+            DistributionSummary(self.tid, meter_type='x')
+
     def test_record(self):
-        t = DistributionSummary(DistributionSummaryTest.tid)
-        t.record(42)
-        self.assertEqual(t.count(), 1)
-        self.assertEqual(t.total_amount(), 42)
+        d = DistributionSummary(self.tid, writer=MemoryWriter())
+        self.assertTrue(d._writer.is_empty())
+
+        d.record(42)
+        self.assertEqual("d:test:42", d._writer.last_line())
 
     def test_record_negative(self):
-        t = DistributionSummary(DistributionSummaryTest.tid)
-        t.record(-42)
-        self.assertEqual(t.count(), 0)
-        self.assertEqual(t.total_amount(), 0)
+        d = DistributionSummary(self.tid, writer=MemoryWriter())
+        d.record(-42)
+        self.assertTrue(d._writer.is_empty())
 
     def test_record_zero(self):
-        t = DistributionSummary(DistributionSummaryTest.tid)
-        t.record(0)
-        self.assertEqual(t.count(), 1)
-        self.assertEqual(t.total_amount(), 0)
+        d = DistributionSummary(self.tid, writer=MemoryWriter())
+        d.record(0)
+        self.assertEqual("d:test:0", d._writer.last_line())
 
-    def test_record_multiple(self):
-        t = DistributionSummary(DistributionSummaryTest.tid)
-        t.record(42)
-        t.record(2)
-        t.record(7)
-        self.assertEqual(t.count(), 3)
-        self.assertEqual(t.total_amount(), 51)
+    def test_count_and_total_amount(self):
+        """Avoid breaking the API."""
+        d = DistributionSummary(self.tid, writer=MemoryWriter())
+        self.assertTrue(d._writer.is_empty())
 
-    def test_measure(self):
-        t = DistributionSummary(DistributionSummaryTest.tid)
-        t.record(42)
-        t.record(2)
-        t.record(7)
-        ms = t._measure()
+        d.record(42)
+        self.assertEqual(0, d.count())
+        self.assertEqual(0, d.total_amount())
 
-        def get_stat(s):
-            return ms[DistributionSummaryTest.tid.with_stat(s)]
 
-        self.assertEqual(len(ms), 4)
-        self.assertEqual(get_stat('count'), 3)
-        self.assertEqual(get_stat('totalAmount'), 51)
-        self.assertEqual(get_stat('max'), 42)
-        self.assertEqual(get_stat('totalOfSquares'), 42**2 + 2**2 + 7**2)
+class PercentileDistributionSummaryTest(unittest.TestCase):
+    tid = MeterId("test")
 
-        self.assertEqual(t.count(), 0)
-        self.assertEqual(t.total_amount(), 0)
+    def test_invalid_meter_type(self):
+        with self.assertRaises(ValueError):
+            DistributionSummary(self.tid, meter_type='x')
+
+    def test_record(self):
+        d = DistributionSummary(self.tid, meter_type="D", writer=MemoryWriter())
+        self.assertTrue(d._writer.is_empty())
+
+        d.record(42)
+        self.assertEqual("D:test:42", d._writer.last_line())
+
+    def test_record_negative(self):
+        d = DistributionSummary(self.tid, meter_type="D", writer=MemoryWriter())
+        d.record(-42)
+        self.assertTrue(d._writer.is_empty())
+
+    def test_record_zero(self):
+        d = DistributionSummary(self.tid, meter_type="D", writer=MemoryWriter())
+        d.record(0)
+        self.assertEqual("D:test:0", d._writer.last_line())

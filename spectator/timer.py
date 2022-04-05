@@ -1,96 +1,65 @@
-from abc import ABCMeta, abstractmethod
-from future.utils import with_metaclass
-
-from spectator.atomicnumber import AtomicNumber
-from spectator.clock import SystemClock
-
-
-class AbstractTimer(with_metaclass(ABCMeta)):
-
-    @abstractmethod
-    def record(self, amount):
-        pass
-
-    @abstractmethod
-    def stopwatch(self):
-        pass
-
-    @abstractmethod
-    def count(self):
-        pass
-
-    @abstractmethod
-    def total_time(self):
-        pass
-
-    @abstractmethod
-    def _measure(self):
-        pass
+from spectator.clock import Clock, SystemClock
+from spectator.id import MeterId
+from spectator.sidecarmeter import SidecarMeter
+from spectator.sidecarwriter import SidecarWriter
 
 
-class NoopTimer(AbstractTimer):
+class Timer(SidecarMeter):
+    """The value is the number of seconds that have elapsed for an event. A stopwatch method
+    is available, which provides a context manager that can be used to automate recording the
+    timing for a block of code using the `with` statement.
 
-    def record(self, amount):
-        pass
+    Two types are available: (1) standard timers, with a meter type of "t", and (2) percentile
+    timers, with a meter type of "T". The standard timers are the default.
 
-    def stopwatch(self):
-        return StopWatch(self)
+    In order to maintain the data distribution, Percentile Timers have a higher storage cost,
+    with a worst-case of up to 300X that of a standard Timer. Be diligent about any additional
+    dimensions added to Percentile Timers and ensure that they have a small bounded cardinality."""
 
-    def count(self):
-        return 0
+    def __init__(self, meter_id: MeterId, clock: Clock = SystemClock(), meter_type: str = "t",
+                 writer: SidecarWriter = SidecarWriter.create("none")) -> None:
+        if meter_type not in ["t", "T"]:
+            raise ValueError("Timers must have a meter type of 't' or 'T'.")
 
-    def total_time(self):
-        return 0
-
-    def _measure(self):
-        return {}
-
-
-class Timer(AbstractTimer):
-
-    def __init__(self, meterId, clock=SystemClock()):
-        self.meterId = meterId
+        super().__init__(meter_id, meter_type)
         self._clock = clock
-        self._count = AtomicNumber(0)
-        self._totalTime = AtomicNumber(0)
-        self._totalOfSquares = AtomicNumber(0)
-        self._max = AtomicNumber(0)
+        self._writer = writer
 
-    def record(self, amount):
-        if amount >= 0:
-            self._count.increment_and_get()
-            self._totalTime.add_and_get(amount)
-            self._totalOfSquares.add_and_get(amount * amount)
-            self._max.max(amount)
+    def record(self, seconds: float) -> None:
+        if seconds >= 0:
+            self._writer.write(self.idString, seconds)
 
-    def stopwatch(self):
+    def stopwatch(self) -> "StopWatch":
         return StopWatch(self)
 
-    def count(self):
-        return self._count.get()
+    def clock(self) -> Clock:
+        return self._clock
 
-    def total_time(self):
-        return self._totalTime.get()
+    @staticmethod
+    def count() -> int:
+        """Avoid breaking the API."""
+        return 0
 
-    def _measure(self):
-        ms = {}
-        for stat in ['count', 'totalTime', 'totalOfSquares', 'max']:
-            v = getattr(self, "_{}".format(stat)).get_and_set(0)
-            ms[self.meterId.with_stat(stat)] = v
-        return ms
+    @staticmethod
+    def total_time() -> float:
+        """Avoid breaking the API."""
+        return 0
 
 
 class StopWatch:
+    """Context Manager that records the duration of a with-statement block in a Timer or
+    PercentileTimer. The type annotation for the init parameter is skipped to avoid circular
+    imports."""
 
-    def __init__(self, timer):
+    def __init__(self, timer) -> None:
         self._timer = timer
 
-    def __enter__(self):
-        self._start = self._timer._clock.monotonic_time()
+    def __enter__(self) -> None:
+        self._start = self._timer.clock().monotonic_time()
 
-    def __exit__(self, typ, value, traceback):
+    def __exit__(self, type_, value, traceback) -> None:
         self._timer.record(self.duration())
 
-    def duration(self):
-        now = self._timer._clock.monotonic_time()
+    def duration(self) -> float:
+        now = self._timer.clock().monotonic_time()
         return now - self._start

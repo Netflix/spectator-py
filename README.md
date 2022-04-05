@@ -2,41 +2,36 @@
 
 ## Introduction
 
-Python port of the [Spectator] library for Java.
+Python thin-client metrics library for use with [Atlas] and [SpectatorD].
 
-See the Spectator [documentation] for an overview of core concepts and details on [usage].
+Supports Python >= 3.5. This version is chosen as the baseline, because it is the oldest system
+Python available in our operating environments. 
 
-Supports Python >= 3.5, which is the oldest system Python 3 available on our commonly used OSes.
-
-Note that there is a risk of deadlock if you are running Python 3.6 or lower and using 
-`os.fork()` or using a library that will fork the process 
-(see [this section](#concurrent-usage-under-older-python) for workarounds),
-so **we recommend using Python >= 3.7**
-
-[Spectator]: https://github.com/Netflix/spectator/
-[documentation]: https://netflix.github.io/atlas-docs/spectator/
-[usage]: https://netflix.github.io/atlas-docs/spectator/lang/py/usage/
+[Atlas]: https://github.com/Netflix/atlas
+[SpectatorD]: https://github.com/Netflix-Skunkworks/spectatord
 
 ## Local Development
 
-* Install [pyenv](https://github.com/pyenv/pyenv), possibly with [Homebrew](https://brew.sh/).
-* Install Python versions: 3.5, 3.6, 3.7, and 3.8. Enable all versions globally.
-* Make changes and add tests.
-* `tox`
+Install [pyenv](https://github.com/pyenv/pyenv), possibly with [Homebrew](https://brew.sh/), and
+install a recent Python version.
+
+```shell
+make setup-venv
+make test
+make coverage
+```
 
 ## Usage
 
 ## Installing
 
-The `netflix-spectator-py` package alone is not sufficient to report data to an Atlas backend -
-a configuration package must also be installed.
-
-At Netflix, the internal configuration package is named `netflix-spectator-pyconf` and it declares
-a dependency on this client package.
+Install this library for your project as follows:
 
 ```
-pip3 install netflix-spectator-pyconf
+pip3 install netflix-spectator-py
 ```
+
+Publishing metrics requires a [SpectatorD] process running on your instance.
 
 ## Importing
 
@@ -49,8 +44,9 @@ variables are available to the Python application.
 source /etc/nflx/environment
 ```
 
-Importing the `GlobalRegistry` configures common tags based on environment variables, sets the
-Atlas Aggregator URL, and starts a background thread which reports metrics data every five seconds.
+Importing the `GlobalRegistry` instantiates a `Registry` with a default configuration that applies
+process-specific common tags based on environment variables and opens a socket to the [SpectatorD]
+sidecar. The remainder of the instance-specific common tags are provided by SpectatorD.
 
 ```python
 from spectator import GlobalRegistry
@@ -58,108 +54,14 @@ from spectator import GlobalRegistry
 
 Once the `GlobalRegistry` is imported, it is used to create and manage Meters.
 
-### Concurrent Usage Under Older Python
-
-> :warning: **Use Python 3.7+ if possible**: But if you can't, here's a workaround to prevent deadlocks
-
-There is a known issue in Python where forking a process after a thread is started can lead to
-deadlocks. This is commonly seen when using the `multiprocessing` module with default settings.
-The root cause of the deadlocks is that `fork()` copies everything in memory, including globals
-that have been set in imported modules, but it does not copy threads - any threads started in
-the parent process will not exist in the child process. The possibility of deadlocks occurs when
-global state sets a lock and it then depends upon a thread to remove the lock.
-
-Under the standard usage model for `spectator-py`, it starts a background publishing thread when
-the module is imported, which is responsible for manipulating a lock. Below, there are a couple of
-options described for working around this issue.
-
-#### Gunicorn
-
-If you are using `spectator-py` while running under [Gunicorn], then do not use the `--preload`
-flag, which loads application code before worker processes are forked. Preloading triggers the
-conditions that allow deadlocks to occur in the background publish thread.
-
-At Netflix, you can set the following flag in `/etc/default/ezconfig` to achieve this configuration
-for Gunicorn:
-
-```bash
-WSGI_GUNICORN_PRELOAD = undef
-```
-
-[Gunicorn]: https://gunicorn.org/
-
-#### Task Worker Forking
-
-> :warning: **Use Python 3.7+ if possible**: But if you can't, here's a workaround to prevent deadlocks
-
-For other pre-fork worker processing frameworks, such as [huey], you need to be careful about how
-and when you start the `GlobalRegistry` to avoid deadlocks in the background publish thread. You
-should set the `SPECTATOR_PY_DISABLE_AUTO_START_GLOBAL` environment variable to disable automatic
-startup of the Registry, so that you can plan to start it manually after all of the workers have
-been forked.
-
-You can set the variable as a part of your initialization script:
-
-```bash
-export SPECTATOR_PY_DISABLE_AUTO_START_GLOBAL=1
-```
-
-You can set the variable in Python code, as long as it is at the top of the module where you plan
-to use `spectator-py`:
-
-```python
-import os
-
-os.environ["SPECTATOR_PY_DISABLE_AUTO_START_GLOBAL"] = "1"
-```
-
-After your workers have started, you can then start the `GlobalRegistry` as follows:
-
-```python
-from spectator import GlobalRegistry
-
-GlobalRegistry.start()
-```
-
-It is often best to have the `import` and `start()` within an initialization function for the
-workers, to help ensure that it is not started when the module is loaded.
-
-[huey]: https://github.com/coleifer/huey
-
-#### Generic Multiprocessing
-
-> :warning: **Use Python 3.7+ if possible**: But if you can't, here's a workaround to prevent deadlocks
-
-In Python 3, you can configure the start method to `spawn` for `multiprocessing`. This will cause
-the module to do a `fork()` followed by an `execve()` to start a brand new Python process.
-
-To configure this option globally:
-
-```python
-from multiprocessing import set_start_method
-set_start_method("spawn")
-```
-
-To configure this option within a context:
-
-```python
-from multiprocessing import get_context
-
-def your_func():
-    with get_context("spawn").Pool() as pool:
-        pass
-```
-
 ### Logging
 
-This package provides three loggers:
+This package provides the following loggers:
 
-* `spectator.init`
-* `spectator.HttpClient`
-* `spectator.Registry`
+* `spectator.SidecarWriter`
 
-When troubleshooting metrics collection and reporting, you should set `Registry` logging to the
-`DEBUG` level. For example:
+When troubleshooting metrics collection and reporting, you should set the `SidecarWriter` logging
+to the `DEBUG` level, before the first metric is recorded. For example:
 
 ```python
 import logging
@@ -170,24 +72,15 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(thread)d - %(message)s'
 )
 
-# silence the HttpClient logger output, to minimize confusion while reading logs
-logging.getLogger('spectator.HttpClient').setLevel(logging.ERROR)
-
-# set the Registry logger to INFO or ERROR when done troubleshooting
-logging.getLogger('spectator.Registry').setLevel(logging.DEBUG)
+logging.getLogger('spectator.SidecarWriter').setLevel(logging.DEBUG)
 ```
 
-### Detecting Deadlocks
-
-If you need to detect whether or not your application is affected by deadlocks, then you can use
-[sys._current_frames] to collect stack frames periodically and check them. A common pattern is
-to run this on a background thread every 10 seconds.
-
-[sys._current_frames]: https://docs.python.org/3/library/sys.html#sys._current_frames
+There is approximately a 10% performance penalty in UDP write performance when debug logging is
+enabled. It may be more, depending on the exact logging configuration (i.e. flushing to slow disk).
 
 ## Working with IDs
 
-The IDs used for looking up a meter in the `GlobalRegistry` consist of a name and a set of tags.
+The IDs used for identifying a meter in the `GlobalRegistry` consist of a name and a set of tags.
 IDs will be consumed by users many times after the data has been reported, so they should be
 chosen thoughtfully, while considering how they will be used. See the [naming conventions] page
 for general guidelines.
@@ -198,13 +91,43 @@ and values must be strings.** For example, if you want to keep track of the numb
 requests, you must cast integers to strings.
 
 ```python
-requests_id = GlobalRegistry.counter('server.numRequests', {'statusCode': str(200)})
+from spectator import GlobalRegistry
+
+requests_id = GlobalRegistry.counter("server.numRequests", {"statusCode": str(200)})
 requests_id.increment()
 ```
 
-[naming conventions]: https://netflix.github.io/spectator/en/latest/intro/conventions/
+[naming conventions]: https://netflix.github.io/atlas-docs/concepts/naming/
 
 ## Meter Types
+
+### Age Gauges
+
+The value is the time in seconds since the epoch at which an event has successfully occurred, or
+`0` to use the current time in epoch seconds. After an Age Gauge has been set, it will continue
+reporting the number of seconds since the last time recorded, for as long as the SpectatorD
+process runs. The purpose of this metric type is to enable users to more easily implement the
+Time Since Last Success alerting pattern.
+
+To set a specific time as the last success:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.age_gauge("time.sinceLastSuccess").set(1611081000)
+```
+
+To set `now()` as the last success:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.age_gauge("time.sinceLastSuccess").set(0)
+```
+
+By default, a maximum of `1000` Age Gauges are allowed per `spectatord` process, because there is no
+mechanism for cleaning them up. This value may be tuned with the `--age_gauge_limit` flag on the
+`spectatord` binary.
 
 ### Counters
 
@@ -217,14 +140,18 @@ can be used to convert them back into a value-per-step on a graph.
 Call `increment()` when an event occurs:
 
 ```python
-GlobalRegistry.counter('server.numRequests').increment()
+from spectator import GlobalRegistry
+
+GlobalRegistry.counter("server.numRequests").increment()
 ```
 
 You can also pass a value to `increment()`. This is useful when a collection of events happens
 together:
 
 ```python
-GlobalRegistry.counter('queue.itemsAdded').increment(10)
+from spectator import GlobalRegistry
+
+GlobalRegistry.counter("queue.itemsAdded").increment(10)
 ```
 
 ### Distribution Summaries
@@ -240,7 +167,29 @@ This means that a `4K` tick label will represent 4 kilobytes, rather than 4 kilo
 Call `record()` with a value:
 
 ```python
-GlobalRegistry.distribution_summary('server.requestSize').record(10)
+from spectator import GlobalRegistry
+
+GlobalRegistry.distribution_summary("server.requestSize").record(10)
+```
+
+### Percentile Distribution Summaries
+
+The value tracks the distribution of events, with percentile estimates. It is similar to a
+Percentile Timer, but more general, because the size does not have to be a period of time.
+
+For example, it can be used to measure the payload sizes of requests hitting a server or the
+number of records returned from a query.
+
+In order to maintain the data distribution, they have a higher storage cost, with a worst-case of
+up to 300X that of a standard Distribution Summary. Be diligent about any additional dimensions
+added to Percentile Distribution Summaries and ensure that they have a small bounded cardinality.
+
+Call `record()` with a value:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.pct_distribution_summary("server.requestSize").record(10)
 ```
 
 ### Gauges
@@ -256,15 +205,20 @@ higher or lower at some point during interval, but that is not known.
 Call `set()` with a value:
 
 ```python
-GlobalRegistry.gauge('server.queueSize').set(10)
+from spectator import GlobalRegistry
+
+GlobalRegistry.gauge("server.queueSize").set(10)
 ```
 
-Gauges are designed to report the last set value for 15 minutes. This done so that updates to the
-values do not need to be collected on a tight 1-minute schedule to ensure that Atlas shows
-unbroken lines in graphs.
+Gauges will report the last set value for 15 minutes. This done so that updates to the values do
+not need to be collected on a tight 1-minute schedule to ensure that Atlas shows unbroken lines in
+graphs. A custom TTL, may be configured for gauges. SpectatorD enforces a minimum TTL of 5 seconds.
 
-If you wish to no longer report a Gauge value, then set it to `float('nan')`. This is a separate
-and distinct value from `'nan'` or `'NaN'`, which are strings.
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.gauge("server.queueSize", ttl_seconds=120).set(10)
+```
 
 ### Timers
 
@@ -273,12 +227,115 @@ A Timer is used to measure how long (in seconds) some event is taking.
 Call `record()` with a value:
 
 ```python
-GlobalRegistry.timer('server.requestLatency').record(0.01)
+from spectator import GlobalRegistry
+
+GlobalRegistry.timer("server.requestLatency").record(0.01)
 ```
 
-Timers will keep track of the following statistics as they are used:
+A `stopwatch()` method is available which may be used as a [Context Manager](https://docs.python.org/3/reference/datamodel.html#context-managers)
+to automatically record the number of seconds that have elapsed while executing a block of code:
+
+```python
+import time
+from spectator import GlobalRegistry
+
+t = GlobalRegistry.timer("thread.sleep")
+
+with t.stopwatch():
+    time.sleep(5)
+```
+
+Internally, Timers will keep track of the following statistics as they are used:
 
 * `count`
 * `totalTime`
 * `totalOfSquares`
 * `max`
+
+### Percentile Timers
+
+The value is the number of seconds that have elapsed for an event, with percentile estimates.
+
+This metric type will track the data distribution by maintaining a set of Counters. The
+distribution can then be used on the server side to estimate percentiles, while still
+allowing for arbitrary slicing and dicing based on dimensions.
+
+In order to maintain the data distribution, they have a higher storage cost, with a worst-case of
+up to 300X that of a standard Timer. Be diligent about any additional dimensions added to Percentile
+Timers and ensure that they have a small bounded cardinality.
+
+Call `record()` with a value:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.pct_timer("server.requestLatency").record(0.01)
+```
+
+A `stopwatch()` method is available which may be used as a [Context Manager](https://docs.python.org/3/reference/datamodel.html#context-managers)
+to automatically record the number of seconds that have elapsed while executing a block of code:
+
+```python
+import time
+from spectator import GlobalRegistry
+
+t = GlobalRegistry.pct_timer("thread.sleep")
+
+with t.stopwatch():
+    time.sleep(5)
+```
+
+## Migrating from 0.1.X to 0.2.X
+
+* This library no longer publishes directly to the Atlas backends. It now publishes to the
+[SpectatorD] sidecar which is bundled with all standard AMIs and containers. If you must
+have the previous direct publishing behavior, because SpectatorD is not yet available on the
+platform where your code runs, then you can pin to version `0.1.18`.
+* The internal Netflix configuration companion library is no longer required and this dependency
+may be dropped from your project.
+* The API surface area remains unchanged to avoid breaking library consumers, and standard uses of
+`GlobalRegistry` helper methods for publishing metrics continue to work as expected. Several helper
+methods on meter classes are now no-ops, always returning values such as `0` or `nan`. If you want
+to write tests to validate metrics publication, take a look at the tests in this library for a few
+examples of how that can be done. The core idea is to capture the lines which will be written out
+to SpectatorD.
+* Replace uses of `PercentileDistributionSummary` with direct use of the Registry
+`pct_distribution_summary` method.
+
+    ```
+    # before
+    from spectator import GlobalRegistry
+    from spectator.histogram import PercentileDistributionSummary
+    
+    d = PercentileDistributionSummary(GlobalRegistry, "server.requestSize")
+    d.record(10)
+    ```
+
+    ```
+    # after
+    from spectator import GlobalRegistry
+    
+    GlobalRegistry.pct_distribution_summary("server.requestSize").record(10)
+    ```
+
+* Replace uses of `PercentileTimer` with direct use of the Registry `pct_timer` method.
+
+    ```
+    # before
+    from spectator import GlobalRegistry
+    from spectator.histogram import PercentileTimer
+    
+    t = PercentileTimer(GlobalRegistry, "server.requestSize")
+    t.record(0.01)
+    ```
+    
+    ```
+    # after
+    from spectator import GlobalRegistry
+    
+    GlobalRegistry.pct_timer("server.requestSize").record(0.1)
+    ```
+
+* Implemented new meter types supported by [SpectatorD]: `age_gauge`, `max_gauge` and
+`monotonic_counter`. See the SpectatorD documentation or the class docstrings for
+more details.

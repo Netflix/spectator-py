@@ -28,7 +28,7 @@ class MeterIdTest(unittest.TestCase):
 
     def test_tags(self):
         id1 = MeterId("foo", {"a": "1"})
-        self.assertEqual(id1.tags(), {"a": "1"})
+        self.assertEqual({"a": "1"}, id1.tags())
 
     def test_tags_defensive_copy(self):
         id1 = MeterId("foo", {"a": "1"})
@@ -37,15 +37,36 @@ class MeterIdTest(unittest.TestCase):
         self.assertEqual({"a": "1", "b": "2"}, tags)
         self.assertEqual({"a": "1"}, id1.tags())
 
-    def test_with_tags(self):
-        id1 = MeterId("foo", {"a": "1"})
-        id2 = id1.with_tags({"b": "2", "c": "3"})
-        self.assertEqual({"a": "1", "b": "2", "c": "3"}, id2.tags())
+    def test_with_tag_returns_new_object(self):
+        id1 = MeterId("foo")
+        id2 = id1.with_tag("a", "1")
+        self.assertNotEqual(id1, id2)
+        self.assertEqual({}, id1.tags())
+        self.assertEqual({"a": "1"}, id2.tags())
+
+    def test_with_tags_returns_new_object(self):
+        id1 = MeterId("foo")
+        id2 = id1.with_tags({"a": "1", "b": "2"})
+        self.assertNotEqual(id1, id2)
+        self.assertEqual({}, id1.tags())
+        self.assertEqual({"a": "1", "b": "2"}, id2.tags())
 
     def test_different_types_not_equal(self):
         id1 = MeterId("foo", {"a": "1"})
         self.assertTrue(id1 != 1)
 
+    def test_with_stat(self):
+        """Avoid breaking the API."""
+        id1 = MeterId("foo")
+        self.assertEqual(id1, id1.with_stat("bar"))
+
+    def test_with_default_stat(self):
+        """Avoid breaking the API."""
+        id1 = MeterId("foo")
+        self.assertEqual(id1, id1.with_default_stat("bar"))
+
     def test_str(self):
-        id1 = MeterId("foo", {"a": "1", "b": "2", "c": "3"})
-        self.assertEqual("foo:a=1,b=2,c=3", str(id1))
+        id1 = MeterId("foo")
+        self.assertEqual("foo", str(id1))
+        id2 = MeterId("foo", {"a": "1", "b": "2", "c": "3"})
+        self.assertEqual("foo,a=1,b=2,c=3", str(id2))

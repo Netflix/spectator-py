@@ -1,62 +1,58 @@
-from abc import ABCMeta, abstractmethod
-from future.utils import with_metaclass
+from typing import Optional
 
-from spectator.atomicnumber import AtomicNumber
-from spectator.clock import SystemClock
-
-
-class AbstractGauge(with_metaclass(ABCMeta)):
-
-    @abstractmethod
-    def get(self):
-        pass
-
-    @abstractmethod
-    def set(self, value):
-        pass
-
-    @abstractmethod
-    def _measure(self):
-        pass
+from spectator.id import MeterId
+from spectator.sidecarmeter import SidecarMeter
+from spectator.sidecarwriter import SidecarWriter
 
 
-class NoopGauge(AbstractGauge):
+class Gauge(SidecarMeter):
+    """The value is a number that was sampled at a point in time. The default time-to-live (TTL)
+    for gauges is 900 seconds (15 minutes) - they will continue reporting the last value set for
+    this duration of time. An optional ttl_seconds may be set to control the lifespan of these
+    values. SpectatorD enforces a minimum ttl of 5 seconds."""
 
-    def get(self):
+    def __init__(self, meter_id: MeterId, ttl_seconds: Optional[int] = None,
+                 writer: SidecarWriter = SidecarWriter.create("none")) -> None:
+        if ttl_seconds is None:
+            meter_type = "g"
+        else:
+            meter_type = "g,{}".format(ttl_seconds)
+        super().__init__(meter_id, meter_type)
+        self._writer = writer
+
+    def set(self, value: float) -> None:
+        self._writer.write(self.idString, value)
+
+    @staticmethod
+    def get() -> float:
+        """Avoid breaking the API."""
         return 0
 
-    def set(self, value):
-        pass
 
-    def _measure(self):
-        return {}
+class AgeGauge(SidecarMeter):
+    """The value is the time in seconds since the epoch at which an event has successfully
+    occurred, or 0 to use the current time in epoch seconds. After an Age Gauge has been set,
+    it will continue reporting the number of seconds since the last time recorded, for as long
+    as the SpectatorD process runs. This meter type makes it easy to implement the Time Since
+    Last Success alerting pattern."""
+
+    def __init__(self, meter_id: MeterId,
+                 writer: SidecarWriter = SidecarWriter.create("none")) -> None:
+        super().__init__(meter_id, "A")
+        self._writer = writer
+
+    def set(self, seconds: int) -> None:
+        self._writer.write(self.idString, seconds)
 
 
-class Gauge(AbstractGauge):
-    ttl = 15 * 60
+class MaxGauge(SidecarMeter):
+    """The value is a number that was sampled at a point in time, but it is reported as a maximum
+    gauge value to the backend."""
 
-    def __init__(self, meterId, clock=SystemClock()):
-        self.meterId = meterId
-        self._clock = clock
-        self._last_update = AtomicNumber(float('nan'))
-        self._value = AtomicNumber(float('nan'))
+    def __init__(self, meter_id: MeterId,
+                 writer: SidecarWriter = SidecarWriter.create("none")) -> None:
+        super().__init__(meter_id, "m")
+        self._writer = writer
 
-    def get(self):
-        return self._value.get()
-
-    def set(self, value):
-        self._last_update.set(self._clock.wall_time())
-        self._value.set(value)
-
-    def _has_expired(self):
-        return (self._clock.wall_time() - self._last_update.get()) > self.ttl
-
-    def _measure(self):
-        id = self.meterId.with_default_stat('gauge')
-
-        if self._has_expired():
-            v = self._value.get_and_set(float('nan'))
-        else:
-            v = self._value.get()
-
-        return {id: v}
+    def set(self, value: float) -> None:
+        self._writer.write(self.idString, value)
