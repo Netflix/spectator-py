@@ -1,7 +1,10 @@
 class MeterId:
-    def __init__(self, name, tags={}):
+    def __init__(self, name, tags=None):
+        if tags is None:
+            self._tags = {}
+        else:
+            self._tags = tags
         self.name = name
-        self._tags = tags.copy()
 
     def tags(self):
         return self._tags.copy()

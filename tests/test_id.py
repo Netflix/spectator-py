@@ -1,5 +1,6 @@
-from spectator.id import MeterId
 import unittest
+
+from spectator.id import MeterId
 
 
 class MeterIdTest(unittest.TestCase):
@@ -22,8 +23,8 @@ class MeterIdTest(unittest.TestCase):
     def test_lookup_tags(self):
         id1 = MeterId("foo", {"a": "1", "b": "2", "c": "3"})
         id2 = MeterId("foo", {"c": "3", "b": "2", "a": "1"})
-        map = {id1: "test"}
-        self.assertEqual(map[id2], "test")
+        d = {id1: "test"}
+        self.assertEqual("test", d[id2])
 
     def test_tags(self):
         id1 = MeterId("foo", {"a": "1"})
@@ -33,5 +34,18 @@ class MeterIdTest(unittest.TestCase):
         id1 = MeterId("foo", {"a": "1"})
         tags = id1.tags()
         tags["b"] = "2"
-        self.assertEqual(tags, {"a": "1", "b": "2"})
-        self.assertEqual(id1.tags(), {"a": "1"})
+        self.assertEqual({"a": "1", "b": "2"}, tags)
+        self.assertEqual({"a": "1"}, id1.tags())
+
+    def test_with_tags(self):
+        id1 = MeterId("foo", {"a": "1"})
+        id2 = id1.with_tags({"b": "2", "c": "3"})
+        self.assertEqual({"a": "1", "b": "2", "c": "3"}, id2.tags())
+
+    def test_different_types_not_equal(self):
+        id1 = MeterId("foo", {"a": "1"})
+        self.assertTrue(id1 != 1)
+
+    def test_str(self):
+        id1 = MeterId("foo", {"a": "1", "b": "2", "c": "3"})
+        self.assertEqual("foo:a=1,b=2,c=3", str(id1))
