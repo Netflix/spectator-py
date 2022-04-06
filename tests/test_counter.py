@@ -1,10 +1,10 @@
-from spectator.id import MeterId
-from spectator.counter import Counter
 import unittest
+
+from spectator.counter import Counter
+from spectator.id import MeterId
 
 
 class CounterTest(unittest.TestCase):
-
     tid = MeterId("test")
 
     def test_increment(self):
