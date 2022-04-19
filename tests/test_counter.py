@@ -1,33 +1,45 @@
 import unittest
 
-from spectator.counter import Counter
+from spectator.counter import Counter, MonotonicCounter
 from spectator.id import MeterId
+from spectator.sidecarwriter import MemoryWriter
 
 
 class CounterTest(unittest.TestCase):
     tid = MeterId("test")
 
     def test_increment(self):
-        c = Counter(CounterTest.tid)
-        self.assertEqual(c.count(), 0)
+        c = Counter(self.tid, writer=MemoryWriter())
+        self.assertTrue(c._writer.is_empty())
+
         c.increment()
-        self.assertEqual(c.count(), 1)
+        self.assertEqual("c:test:1", c._writer.last_line())
 
     def test_increment_negative(self):
-        c = Counter(CounterTest.tid)
+        c = Counter(self.tid, writer=MemoryWriter())
         c.increment(-1)
-        self.assertEqual(c.count(), 0)
+        self.assertTrue(c._writer.is_empty())
 
-    def test_measure(self):
-        c = Counter(CounterTest.tid)
+    def test_count(self):
+        """Avoid breaking the API."""
+        c = Counter(self.tid, writer=MemoryWriter())
         c.increment()
-        ms = c._measure()
-        self.assertEqual(len(ms), 1)
-        self.assertEqual(ms[CounterTest.tid.with_stat('count')], 1)
-        self.assertEqual(c.count(), 0)
+        self.assertEqual(0, c.count())
 
-    def test_user_statistic(self):
-        c = Counter(CounterTest.tid.with_stat('totalTime'))
-        c.increment()
-        for id in c._measure().keys():
-            self.assertEqual('totalTime', id.tags()['statistic'])
+
+class MonotonicCounterTest(unittest.TestCase):
+    tid = MeterId("test")
+
+    def test_set(self):
+        c = MonotonicCounter(self.tid, writer=MemoryWriter())
+        self.assertTrue(c._writer.is_empty())
+
+        c.set(1)
+        self.assertEqual("C:test:1", c._writer.last_line())
+
+    def test_set_negative(self):
+        c = MonotonicCounter(self.tid, writer=MemoryWriter())
+        self.assertTrue(c._writer.is_empty())
+
+        c.set(-1)
+        self.assertEqual("C:test:-1", c._writer.last_line())

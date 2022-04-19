@@ -1,11 +1,14 @@
-from spectator import GlobalRegistry
 import unittest
+from contextlib import closing
+
+from spectator import GlobalRegistry
+from .udpserver import UdpServer
 
 
 class GlobalTest(unittest.TestCase):
 
     def test_counter(self):
-        c = GlobalRegistry.counter("test")
-        prev = c.count()
-        c.increment()
-        self.assertEqual(c.count(), prev + 1)
+        with closing(UdpServer(("127.0.0.1", 1234))) as server:  # type: UdpServer
+            c = GlobalRegistry.counter("test")
+            c.increment()
+            self.assertEqual("c:test:1", server.read())
