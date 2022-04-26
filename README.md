@@ -285,6 +285,53 @@ with t.stopwatch():
     time.sleep(5)
 ```
 
+## Writing Tests
+
+To write tests against this library, instantiate a test instance of the Registry and configure it
+to use the [MemoryWriter](https://github.com/Netflix/spectator-py/blob/main/spectator/sidecarwriter.py#L63-L80),
+which stores all updates in a List. Inspect the `last_line()` or scan all `_messages` to verify
+your metrics updates.
+
+```python
+import unittest
+
+from spectator import Registry
+from spectator.sidecarconfig import SidecarConfig
+
+class MetricsTest(unittest.TestCase):
+
+    def test_counter(self):
+        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+
+        c = r.counter("test")
+        self.assertTrue(c._writer.is_empty())
+
+        c.increment()
+        self.assertEqual("c:test:1", c._writer.last_line())
+```
+
+If you need to keep track of the metric classes, you can do that as follows:
+
+```python
+from spectator.counter import Counter, MonotonicCounter
+from spectator.distsummary import DistributionSummary
+from spectator.gauge import AgeGauge, Gauge, MaxGauge
+from spectator.timer import Timer
+
+# https://github.com/Netflix-Skunkworks/spectatord#metric-types
+_METRIC_CLASS_MAP = {
+    'c': Counter,
+    'd': DistributionSummary,
+    'g': Gauge,
+    'm': MaxGauge,
+    't': Timer,
+    'A': AgeGauge,
+    'C': MonotonicCounter,
+    'D': DistributionSummary,
+    'T': Timer
+}
+```
+
 ## Migrating from 0.1.X to 0.2.X
 
 * This library no longer publishes directly to the Atlas backends. It now publishes to the
