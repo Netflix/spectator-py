@@ -49,6 +49,15 @@ class RegistryTest(unittest.TestCase):
         g.set(42)
         self.assertEqual("g:test:42", g._writer.last_line())
 
+    def test_gauge_ttl_seconds(self):
+        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+
+        g = r.gauge("test", ttl_seconds=120)
+        self.assertTrue(g._writer.is_empty())
+
+        g.set(42)
+        self.assertEqual("g,120:test:42", g._writer.last_line())
+
     def test_max_gauge(self):
         r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
 
