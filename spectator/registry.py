@@ -46,8 +46,8 @@ class Registry:
                                  tags: Optional[dict] = None) -> DistributionSummary:
         return DistributionSummary(self._new_meter(name, tags), meter_type="D", writer=self._writer)
 
-    def gauge(self, name: str, tags: Optional[dict] = None) -> Gauge:
-        return Gauge(self._new_meter(name, tags), writer=self._writer)
+    def gauge(self, name: str, tags: Optional[dict] = None, ttl_seconds: Optional[int] = None) -> Gauge:
+        return Gauge(self._new_meter(name, tags), writer=self._writer, ttl_seconds=ttl_seconds)
 
     def max_gauge(self, name: str, tags: Optional[dict] = None) -> MaxGauge:
         return MaxGauge(self._new_meter(name, tags), writer=self._writer)
