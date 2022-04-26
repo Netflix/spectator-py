@@ -332,6 +332,16 @@ _METRIC_CLASS_MAP = {
 }
 ```
 
+If you need to override the default output location (udp) of the `GlobalRegistry`, then you can
+set a `SPECTATOR_OUTPUT_LOCATION` environment variable to one of the following values:
+
+* `none` - disable output
+* `memory` - write to memory (`SidecarWriter` internal list `_messages`)
+* `stdout` - write to standard out for the process
+* `stderr` - write to standard error for the process
+* `file://$path_to_file` - write to a file (e.g. `file:///tmp/foo/bar`)
+* `udp://$host:$port` - write to a UDP socket
+
 ## Migrating from 0.1.X to 0.2.X
 
 * This library no longer publishes directly to the Atlas backends. It now publishes to the

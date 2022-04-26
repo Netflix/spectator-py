@@ -50,3 +50,17 @@ class SidecarConfigTest(unittest.TestCase):
         self.assertEqual(self.all_expected_tags(), config.common_tags())
         self.assertEqual("stdout", config.output_location())
         self.clear_environment()
+
+    def test_valid_output_location(self):
+        config = SidecarConfig()
+        self.assertTrue(config._valid_output_location("none"))
+        self.assertTrue(config._valid_output_location("memory"))
+        self.assertTrue(config._valid_output_location("stdout"))
+        self.assertTrue(config._valid_output_location("stderr"))
+        self.assertTrue(config._valid_output_location("file://"))
+        self.assertTrue(config._valid_output_location("udp://"))
+
+    def test_invalid_output_location(self):
+        config = SidecarConfig()
+        self.assertFalse(config._valid_output_location(None))
+        self.assertFalse(config._valid_output_location("foo"))
