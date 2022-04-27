@@ -310,28 +310,6 @@ class MetricsTest(unittest.TestCase):
         self.assertEqual("c:test:1", c._writer.last_line())
 ```
 
-If you need to keep track of the metric classes, then use the following mapping:
-
-```python
-from spectator.counter import Counter, MonotonicCounter
-from spectator.distsummary import DistributionSummary
-from spectator.gauge import AgeGauge, Gauge, MaxGauge
-from spectator.timer import Timer
-
-# https://github.com/Netflix-Skunkworks/spectatord#metric-types
-_METRIC_CLASS_MAP = {
-    'c': Counter,
-    'd': DistributionSummary,
-    'g': Gauge,
-    'm': MaxGauge,
-    't': Timer,
-    'A': AgeGauge,
-    'C': MonotonicCounter,
-    'D': DistributionSummary,
-    'T': Timer
-}
-```
-
 If you need to override the default output location (udp) of the `GlobalRegistry`, then you can
 set a `SPECTATOR_OUTPUT_LOCATION` environment variable to one of the following values supported
 by the `SidecarConfig` class:
