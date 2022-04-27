@@ -363,6 +363,26 @@ The `MemoryWriter` subclass offers a few methods to inspect the values that it c
 * `is_empty()` - Is the internal list empty?
 * `last_line()` - Return the last element of the internal list.
 
+Lastly, a SpectatorD line protocol parser is available, which is intended to be used for validating
+the results captured by a `MemoryWriter`. It may be used as follows:
+
+```python
+import unittest
+
+from spectator.counter import Counter
+from spectator.protocolparser import parse_protocol_line
+
+
+class ProtocolParserTest(unittest.TestCase):
+
+def test_parse_counter_with_multiple_tags(self):
+       meter_class, meter_id, value = parse_protocol_line("c:test,foo=bar,baz=quux:1")
+       self.assertEqual(Counter, meter_class)
+       self.assertEqual("test", meter_id.name)
+       self.assertEqual({"foo": "bar", "baz": "quux"}, meter_id.tags())
+       self.assertEqual("1", value)
+```
+
 ## Migrating from 0.1.X to 0.2.X
 
 * This library no longer publishes directly to the Atlas backends. It now publishes to the
