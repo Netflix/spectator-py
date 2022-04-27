@@ -22,7 +22,7 @@ class SidecarConfigTest(unittest.TestCase):
 
     @staticmethod
     def clear_environment():
-        keys = ["NETFLIX_PROCESS_NAME", "TITUS_CONTAINER_NAME"]
+        keys = ["NETFLIX_PROCESS_NAME", "SPECTATOR_OUTPUT_LOCATION", "TITUS_CONTAINER_NAME"]
 
         for key in keys:
             try:
@@ -30,26 +30,26 @@ class SidecarConfigTest(unittest.TestCase):
             except KeyError:
                 pass
 
+    def tearDown(self) -> None:
+        self.clear_environment()
+
     def test_default_sidecar_config(self):
         self.setup_environment()
         config = SidecarConfig()
         self.assertEqual(self.all_expected_tags(), config.common_tags())
         self.assertEqual(self.default_location, config.output_location())
-        self.clear_environment()
 
     def test_override_common_tags(self):
         self.setup_environment()
         config = SidecarConfig({"sidecar.common-tags": {"nf.app": "foo"}})
         self.assertEqual({"nf.app": "foo"}, config.common_tags())
         self.assertEqual(self.default_location, config.output_location())
-        self.clear_environment()
 
     def test_override_output_location(self):
         self.setup_environment()
         config = SidecarConfig({"sidecar.output-location": "stdout"})
         self.assertEqual(self.all_expected_tags(), config.common_tags())
         self.assertEqual("stdout", config.output_location())
-        self.clear_environment()
 
     def test_valid_output_location(self):
         config = SidecarConfig()
@@ -64,3 +64,8 @@ class SidecarConfigTest(unittest.TestCase):
         config = SidecarConfig()
         self.assertFalse(config._valid_output_location(None))
         self.assertFalse(config._valid_output_location("foo"))
+
+    def test_env_configuration(self):
+        os.environ["SPECTATOR_OUTPUT_LOCATION"] = "memory"
+        config = SidecarConfig()
+        self.assertEqual("memory", config.output_location())

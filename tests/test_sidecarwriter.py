@@ -53,3 +53,11 @@ class SidecarWriterTest(unittest.TestCase):
             with closing(SidecarWriter.create("stdout")) as w:  # type: PrintWriter
                 w.write_line("foo")
                 self.assertEqual("foo\n", f.getvalue())
+
+    def test_memory_writer_get_clear(self):
+        memory = SidecarWriter.create("memory")
+        self.assertEqual([], memory.get())
+        memory.write("c:test:", 1)
+        self.assertEqual(["c:test:1"], memory.get())
+        memory.clear()
+        self.assertEqual([], memory.get())

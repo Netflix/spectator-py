@@ -1,7 +1,7 @@
 import logging
 import socket
 import sys
-from typing import TextIO, Tuple, Union
+from typing import List, TextIO, Tuple, Union
 from urllib.parse import urlparse
 
 
@@ -71,6 +71,12 @@ class MemoryWriter(SidecarWriter):
         self._messages.append(line)
 
     def close(self) -> None:
+        self._messages.clear()
+
+    def get(self) -> List[str]:
+        return self._messages
+
+    def clear(self) -> None:
         self._messages.clear()
 
     def is_empty(self) -> bool:

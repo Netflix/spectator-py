@@ -212,7 +212,7 @@ GlobalRegistry.gauge("server.queueSize").set(10)
 
 Gauges will report the last set value for 15 minutes. This done so that updates to the values do
 not need to be collected on a tight 1-minute schedule to ensure that Atlas shows unbroken lines in
-graphs. A custom TTL, may be configured for gauges. SpectatorD enforces a minimum TTL of 5 seconds.
+graphs. A custom TTL may be configured for gauges. SpectatorD enforces a minimum TTL of 5 seconds.
 
 ```python
 from spectator import GlobalRegistry
@@ -289,7 +289,7 @@ with t.stopwatch():
 
 To write tests against this library, instantiate a test instance of the Registry and configure it
 to use the [MemoryWriter](https://github.com/Netflix/spectator-py/blob/main/spectator/sidecarwriter.py#L63-L80),
-which stores all updates in a List. Inspect the `last_line()` or scan all `_messages` to verify
+which stores all updates in a List. Inspect the `last_line()` or `get()` all messages to verify
 your metrics updates.
 
 ```python
@@ -310,7 +310,7 @@ class MetricsTest(unittest.TestCase):
         self.assertEqual("c:test:1", c._writer.last_line())
 ```
 
-If you need to keep track of the metric classes, you can do that as follows:
+If you need to keep track of the metric classes, then use the following mapping:
 
 ```python
 from spectator.counter import Counter, MonotonicCounter
@@ -333,14 +333,35 @@ _METRIC_CLASS_MAP = {
 ```
 
 If you need to override the default output location (udp) of the `GlobalRegistry`, then you can
-set a `SPECTATOR_OUTPUT_LOCATION` environment variable to one of the following values:
+set a `SPECTATOR_OUTPUT_LOCATION` environment variable to one of the following values supported
+by the `SidecarConfig` class:
 
-* `none` - disable output
-* `memory` - write to memory (`SidecarWriter` internal list `_messages`)
-* `stdout` - write to standard out for the process
-* `stderr` - write to standard error for the process
-* `file://$path_to_file` - write to a file (e.g. `file:///tmp/foo/bar`)
-* `udp://$host:$port` - write to a UDP socket
+* `none` - Disable output.
+* `memory` - Write to memory.
+* `stdout` - Write to standard out for the process.
+* `stderr` - Write to standard error for the process.
+* `file://$path_to_file` - Write to a file (e.g. `file:///tmp/foo/bar`).
+* `udp://$host:$port` - Write to a UDP socket.
+
+If you want to disable metrics publishing from the `GlobalRegistry`, then you can set:
+
+```shell
+export SPECTATOR_OUTPUT_LOCATION=none
+```
+
+If you want to validate the metrics that will be published through the `GlobalRegistry`
+in tests, then you can set:
+
+```shell
+export SPECTATOR_OUTPUT_LOCATION=memory
+```
+
+The `MemoryWriter` subclass offers a few methods to inspect the values that it captures:
+
+* `clear()` - Delete the contents of the internal list.
+* `get()` - Return the internal list.
+* `is_empty()` - Is the internal list empty?
+* `last_line()` - Return the last element of the internal list.
 
 ## Migrating from 0.1.X to 0.2.X
 
