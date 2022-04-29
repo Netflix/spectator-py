@@ -15,7 +15,7 @@ class SidecarWriter:
         self._debug = None
 
     @staticmethod
-    def create(location: str) -> "SidecarWriter":
+    def create(location: str) -> Union["MemoryWriter", "NoopWriter", "PrintWriter", "UdpWriter"]:
         """Create a new writer based on a location string."""
         if location == "none":
             return NoopWriter()
