@@ -15,32 +15,32 @@ class TimerTest(unittest.TestCase):
 
     def test_record(self):
         t = Timer(self.tid, writer=MemoryWriter())
-        self.assertTrue(t._writer.is_empty())
+        self.assertTrue(t.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("t:test:42", t._writer.last_line())
+        self.assertEqual("t:test:42", t.writer().last_line())
 
     def test_record_negative(self):
         t = Timer(self.tid, writer=MemoryWriter())
         t.record(-42)
-        self.assertTrue(t._writer.is_empty())
+        self.assertTrue(t.writer().is_empty())
 
     def test_record_zero(self):
         t = Timer(self.tid, writer=MemoryWriter())
         t.record(0)
-        self.assertEqual("t:test:0", t._writer.last_line())
+        self.assertEqual("t:test:0", t.writer().last_line())
 
     def test_stopwatch(self):
         clock = ManualClock()
         t = Timer(self.tid, clock=clock, writer=MemoryWriter())
         with t.stopwatch():
             clock.set_monotonic_time(42)
-        self.assertEqual("t:test:42", t._writer.last_line())
+        self.assertEqual("t:test:42", t.writer().last_line())
 
     def test_count_and_total_time(self):
         """Avoid breaking the API."""
         t = Timer(self.tid, writer=MemoryWriter())
-        self.assertTrue(t._writer.is_empty())
+        self.assertTrue(t.writer().is_empty())
 
         t.record(42)
         self.assertEqual(0, t.count())
@@ -56,24 +56,24 @@ class PercentileTimerTest(unittest.TestCase):
 
     def test_record(self):
         t = Timer(self.tid, meter_type="T", writer=MemoryWriter())
-        self.assertTrue(t._writer.is_empty())
+        self.assertTrue(t.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("T:test:42", t._writer.last_line())
+        self.assertEqual("T:test:42", t.writer().last_line())
 
     def test_record_negative(self):
         t = Timer(self.tid, meter_type="T", writer=MemoryWriter())
         t.record(-42)
-        self.assertTrue(t._writer.is_empty())
+        self.assertTrue(t.writer().is_empty())
 
     def test_record_zero(self):
         t = Timer(self.tid, meter_type="T", writer=MemoryWriter())
         t.record(0)
-        self.assertEqual("T:test:0", t._writer.last_line())
+        self.assertEqual("T:test:0", t.writer().last_line())
 
     def test_stopwatch(self):
         clock = ManualClock()
         t = Timer(self.tid, clock=clock, meter_type="T", writer=MemoryWriter())
         with t.stopwatch():
             clock.set_monotonic_time(42)
-        self.assertEqual("T:test:42", t._writer.last_line())
+        self.assertEqual("T:test:42", t.writer().last_line())

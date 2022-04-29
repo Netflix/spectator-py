@@ -1,6 +1,8 @@
 import re
+from typing import Union
 
 from spectator.id import MeterId
+from spectator.sidecarwriter import MemoryWriter, NoopWriter, PrintWriter, UdpWriter
 
 
 class SidecarMeter:
@@ -13,6 +15,7 @@ class SidecarMeter:
         :param meter_type:
             Prefix string for line to output to SpectatorD.
         """
+        self._writer = None
         self.meterId = meter_id
         self.idString = self._create_id_string(meter_id, meter_type)
 
@@ -28,3 +31,8 @@ class SidecarMeter:
             s += ",{}={}".format(k, v)
 
         return s + ":"
+
+    def writer(self) -> Union[MemoryWriter, NoopWriter, PrintWriter, UdpWriter]:
+        if self._writer is None:
+            raise NotImplementedError("use a concrete implementation")
+        return self._writer

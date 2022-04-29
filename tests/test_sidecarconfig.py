@@ -1,5 +1,6 @@
 import os
 import unittest
+from typing import Optional
 
 from spectator.sidecarconfig import SidecarConfig
 
@@ -30,6 +31,10 @@ class SidecarConfigTest(unittest.TestCase):
             except KeyError:
                 pass
 
+    @staticmethod
+    def get_location(location: Optional[str]):
+        return SidecarConfig({"sidecar.output-location": location}).output_location()
+
     def tearDown(self) -> None:
         self.clear_environment()
 
@@ -52,18 +57,16 @@ class SidecarConfigTest(unittest.TestCase):
         self.assertEqual("stdout", config.output_location())
 
     def test_valid_output_location(self):
-        config = SidecarConfig()
-        self.assertTrue(config._valid_output_location("none"))
-        self.assertTrue(config._valid_output_location("memory"))
-        self.assertTrue(config._valid_output_location("stdout"))
-        self.assertTrue(config._valid_output_location("stderr"))
-        self.assertTrue(config._valid_output_location("file://"))
-        self.assertTrue(config._valid_output_location("udp://"))
+        self.assertEqual("none", self.get_location("none"))
+        self.assertEqual("memory", self.get_location("memory"))
+        self.assertEqual("stdout", self.get_location("stdout"))
+        self.assertEqual("stderr", self.get_location("stderr"))
+        self.assertEqual("file://", self.get_location("file://"))
+        self.assertEqual("udp://", self.get_location("udp://"))
 
     def test_invalid_output_location(self):
-        config = SidecarConfig()
-        self.assertFalse(config._valid_output_location(None))
-        self.assertFalse(config._valid_output_location("foo"))
+        self.assertEqual("udp://127.0.0.1:1234", self.get_location(None))
+        self.assertEqual("udp://127.0.0.1:1234", self.get_location("foo"))
 
     def test_env_configuration(self):
         os.environ["SPECTATOR_OUTPUT_LOCATION"] = "memory"

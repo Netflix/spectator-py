@@ -289,8 +289,8 @@ with t.stopwatch():
 
 To write tests against this library, instantiate a test instance of the Registry and configure it
 to use the [MemoryWriter](https://github.com/Netflix/spectator-py/blob/main/spectator/sidecarwriter.py#L63-L80),
-which stores all updates in a List. Inspect the `last_line()` or `get()` all messages to verify
-your metrics updates.
+which stores all updates in a List. Use the `writer()` method on the Registry to access the writer,
+then inspect the `last_line()` or `get()` all messages to verify your metrics updates.
 
 ```python
 import unittest
@@ -304,10 +304,10 @@ class MetricsTest(unittest.TestCase):
         r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
 
         c = r.counter("test")
-        self.assertTrue(c._writer.is_empty())
+        self.assertTrue(r.writer().is_empty())
 
         c.increment()
-        self.assertEqual("c:test:1", c._writer.last_line())
+        self.assertEqual("c:test:1", r.writer().last_line())
 ```
 
 If you need to override the default output location (udp) of the `GlobalRegistry`, then you can
@@ -353,12 +353,12 @@ from spectator.protocolparser import parse_protocol_line
 
 class ProtocolParserTest(unittest.TestCase):
 
-def test_parse_counter_with_multiple_tags(self):
-       meter_class, meter_id, value = parse_protocol_line("c:test,foo=bar,baz=quux:1")
-       self.assertEqual(Counter, meter_class)
-       self.assertEqual("test", meter_id.name)
-       self.assertEqual({"foo": "bar", "baz": "quux"}, meter_id.tags())
-       self.assertEqual("1", value)
+    def test_parse_counter_with_multiple_tags(self):
+        meter_class, meter_id, value = parse_protocol_line("c:test,foo=bar,baz=quux:1")
+        self.assertEqual(Counter, meter_class)
+        self.assertEqual("test", meter_id.name)
+        self.assertEqual({"foo": "bar", "baz": "quux"}, meter_id.tags())
+        self.assertEqual("1", value)
 ```
 
 ## Migrating from 0.1.X to 0.2.X

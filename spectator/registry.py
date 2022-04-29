@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from spectator.clock import Clock, SystemClock
 from spectator.counter import Counter, MonotonicCounter
@@ -6,7 +6,7 @@ from spectator.distsummary import DistributionSummary
 from spectator.gauge import AgeGauge, Gauge, MaxGauge
 from spectator.id import MeterId
 from spectator.sidecarconfig import SidecarConfig
-from spectator.sidecarwriter import SidecarWriter
+from spectator.sidecarwriter import SidecarWriter, MemoryWriter, NoopWriter, PrintWriter, UdpWriter
 from spectator.timer import Timer
 
 
@@ -29,6 +29,9 @@ class Registry:
 
     def clock(self) -> Clock:
         return self._clock
+
+    def writer(self) -> Union[MemoryWriter, NoopWriter, PrintWriter, UdpWriter]:
+        return self._writer
 
     def close(self) -> None:
         self._writer.close()

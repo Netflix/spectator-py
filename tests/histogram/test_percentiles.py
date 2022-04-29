@@ -27,10 +27,10 @@ class PercentileTimerTest(unittest.TestCase):
         r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
 
         t = PercentileTimer(r, "test")
-        self.assertTrue(t._pct_timer._writer.is_empty())
+        self.assertTrue(r.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("T:test:42", t._pct_timer._writer.last_line())
+        self.assertEqual("T:test:42", r.writer().last_line())
 
     def test_stopwatch(self):
         clock = ManualClock()
@@ -39,7 +39,7 @@ class PercentileTimerTest(unittest.TestCase):
         t = PercentileTimer(r, "test")
         with t.stopwatch():
             clock.set_monotonic_time(42)
-        self.assertEqual("T:test:42", t._pct_timer._writer.last_line())
+        self.assertEqual("T:test:42", r.writer().last_line())
 
     def test_empty_api_methods(self):
         r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
@@ -56,10 +56,10 @@ class PercentileDistributionSummaryTest(unittest.TestCase):
         r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
 
         t = PercentileDistributionSummary(r, "test")
-        self.assertTrue(t._pct_distsummary._writer.is_empty())
+        self.assertTrue(r.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("D:test:42", t._pct_distsummary._writer.last_line())
+        self.assertEqual("D:test:42", r.writer().last_line())
 
     def test_empty_api_methods(self):
         r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
