@@ -1,13 +1,13 @@
 from typing import Optional, Union
 
 from spectator.clock import Clock, SystemClock
-from spectator.counter import Counter, MonotonicCounter
+from spectator.counter import AsyncCounter, Counter, MonotonicCounter
 from spectator.distsummary import DistributionSummary
 from spectator.gauge import AgeGauge, Gauge, MaxGauge
 from spectator.id import MeterId
 from spectator.sidecarconfig import SidecarConfig
 from spectator.sidecarwriter import SidecarWriter, MemoryWriter, NoopWriter, PrintWriter, UdpWriter
-from spectator.timer import Timer
+from spectator.timer import AsyncTimer, Timer
 
 
 class Registry:
@@ -81,6 +81,21 @@ class Registry:
     def __iter__(self) -> "RegistryIterator":
         """Avoid breaking the API."""
         return RegistryIterator([])
+
+
+class AsyncRegistry(Registry):
+    async def connect(self):
+        await self._writer.connect()
+
+    def counter(self, name: str, tags: Optional[dict] = None) -> Counter:
+        return AsyncCounter(self._new_meter(name, tags), writer=self._writer)
+
+    def timer(self, name: str, tags: Optional[dict] = None) -> Timer:
+        return AsyncTimer(self._new_meter(name, tags), clock=self._clock, writer=self._writer)
+
+    def pct_timer(self, name: str, tags: Optional[dict] = None) -> Timer:
+        return AsyncTimer(self._new_meter(name, tags), clock=self._clock, meter_type="T",
+                          writer=self._writer)
 
 
 class RegistryIterator:

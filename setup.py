@@ -20,11 +20,12 @@ setup(
     license="Apache 2.0",
     url="https://github.com/Netflix/spectator-py",
     packages=["spectator", "spectator.histogram"],
-    install_requires=[],
+    install_requires=["asyncio-dgram"],
     extras_require={
         "dev": [
             "check-manifest",
             "pylint",
+            "pytest-asyncio",
             "pytest-cov",
             "pytest"
         ]

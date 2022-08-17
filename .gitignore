@@ -4,3 +4,4 @@
 netflix_spectator_py.egg-info/
 __pycache__/
 venv/
+.vscode/

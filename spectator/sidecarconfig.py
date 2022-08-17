@@ -39,7 +39,8 @@ class SidecarConfig:
             return False
         return (output in ["none", "memory", "stdout", "stderr"] or
                 output.startswith("file://") or
-                output.startswith("udp://"))
+                output.startswith("udp://") or
+                output.startswith("udp-async://"))
 
     def output_location(self) -> str:
         """

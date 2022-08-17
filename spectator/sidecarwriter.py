@@ -4,6 +4,9 @@ import sys
 from typing import List, TextIO, Tuple, Union
 from urllib.parse import urlparse
 
+import asyncio_dgram
+import asyncio_dgram.aio
+
 
 class SidecarWriter:
     """Base type for a writer that accepts the SpectatorD line protocol. The concrete
@@ -15,7 +18,8 @@ class SidecarWriter:
         self._debug = None
 
     @staticmethod
-    def create(location: str) -> Union["MemoryWriter", "NoopWriter", "PrintWriter", "UdpWriter"]:
+    def create(location: str) -> Union["MemoryWriter", "NoopWriter", "PrintWriter", "UdpWriter",
+                                       "AsyncUdpWriter"]:
         """Create a new writer based on a location string."""
         if location == "none":
             return NoopWriter()
@@ -33,6 +37,10 @@ class SidecarWriter:
             parsed = urlparse(location)
             address = (parsed.hostname, int(parsed.port))
             return UdpWriter(location, address)
+        elif location.startswith("udp-async://"):
+            parsed = urlparse(location)
+            address = (str(parsed.hostname), int(parsed.port))
+            return AsyncUdpWriter(location, address)
         else:
             raise ValueError("unsupported location: {}".format(location))
 
@@ -127,3 +135,35 @@ class UdpWriter(SidecarWriter):
 
     def close(self) -> None:
         self._sock.close()
+
+
+class AsyncUdpWriter(SidecarWriter):
+    """Async verion of a writer that outputs data to UDP socket."""
+
+    def __init__(self, location: str, address: Tuple[str, int]) -> None:
+        super().__init__(location)
+        self._address = address
+
+    async def connect(self):
+        self._stream = await asyncio_dgram.connect(self._address)
+
+    async def write_impl(self, line: str):
+        await self._stream.send(bytes(line, encoding="utf-8"))
+
+    async def write_line(self, line: str):
+        if self._debug is None:
+            # on the first write, cache the log level to speed up later comparisons
+            self._debug = self._logger.isEnabledFor(logging.DEBUG)
+        try:
+            if self._debug:
+                # when enabled, this log line reduces udp socket performance by 10%
+                self._logger.debug("writing to %s: %s", self._location, line)
+            await self.write_impl(line)
+        except (IOError, asyncio_dgram.aio.TransportClosed):
+            self._logger.warning("write to %s failed: %s", self._location, line)
+
+    async def write(self, prefix: str, value: Union[int, float]):
+        await self.write_line(prefix + str(value))
+
+    def close(self) -> None:
+        self._stream.close()

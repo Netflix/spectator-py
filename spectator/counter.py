@@ -1,6 +1,6 @@
 from spectator.id import MeterId
 from spectator.sidecarmeter import SidecarMeter
-from spectator.sidecarwriter import SidecarWriter
+from spectator.sidecarwriter import AsyncUdpWriter, SidecarWriter
 
 
 class Counter(SidecarMeter):
@@ -33,3 +33,16 @@ class MonotonicCounter(SidecarMeter):
 
     def set(self, amount: int) -> None:
         self._writer.write(self.idString, amount)
+
+
+class AsyncCounter(Counter):
+    _writer: AsyncUdpWriter
+
+    def __init__(self, meter_id: MeterId, writer: AsyncUdpWriter) -> None:
+        if not isinstance(writer, AsyncUdpWriter):
+            raise Exception("The Async* classes can only be used with `AsyncUdpWriter`.")
+        super().__init__(meter_id, writer)
+
+    async def increment(self, delta: int = 1) -> None:
+        if delta > 0:
+            await self._writer.write(self.idString, delta)

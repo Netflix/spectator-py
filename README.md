@@ -285,6 +285,17 @@ with t.stopwatch():
     time.sleep(5)
 ```
 
+## Async Support
+```python
+from spectator import AsyncRegistry
+
+r = AsyncRegistry(config=SidecarConfig({"sidecar.output-location": "udp-async://127.0.0.1:1234"}))
+await r.connect()
+
+c = r.counter("test")
+await c.increment()
+```
+
 ## Writing Tests
 
 To write tests against this library, instantiate a test instance of the Registry and configure it

@@ -1,7 +1,7 @@
 from spectator.clock import Clock, SystemClock
 from spectator.id import MeterId
 from spectator.sidecarmeter import SidecarMeter
-from spectator.sidecarwriter import SidecarWriter
+from spectator.sidecarwriter import AsyncUdpWriter, SidecarWriter
 
 
 class Timer(SidecarMeter):
@@ -63,3 +63,22 @@ class StopWatch:
     def duration(self) -> float:
         now = self._timer.clock().monotonic_time()
         return now - self._start
+
+
+class AsyncTimer(Timer):
+    _writer: AsyncUdpWriter
+
+    def stopwatch(self) -> "AsyncStopWatch":
+        return AsyncStopWatch(self)
+
+    async def record(self, seconds: float) -> None:
+        if seconds >= 0:
+            await self._writer.write(self.idString, seconds)
+
+
+class AsyncStopWatch(StopWatch):
+    async def __aenter__(self) -> None:
+        super().__enter__()
+
+    async def __aexit__(self, type_, value, traceback) -> None:
+        await self._timer.record(self.duration())
