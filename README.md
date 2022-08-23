@@ -285,6 +285,16 @@ with t.stopwatch():
     time.sleep(5)
 ```
 
+## asyncio Support
+
+The `GlobalRegistry` provides a `UdpWriter` implementation of the `SidecarWriter` by default. UDP
+is a non-blocking, unordered and connectionless protocol, which is ideal for communicating with a
+local SpectatorD process in a variety of circumstances. The `UdpWriter` should be used in asyncio
+applications.
+
+The `PrintWriter` implementation, which can be used to communicate with the SpectatorD Unix domain
+socket, does not offer asyncio support at this time.
+
 ## Writing Tests
 
 To write tests against this library, instantiate a test instance of the Registry and configure it

@@ -119,11 +119,10 @@ class UdpWriter(SidecarWriter):
     def __init__(self, location: str, address: Tuple[str, int]) -> None:
         super().__init__(location)
         self._address = address
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._sock.connect(self._address)
 
     def write_impl(self, line: str) -> None:
-        self._sock.send(bytes(line, encoding="utf-8"))
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.sendto(bytes(line, encoding="utf-8"), self._address)
 
     def close(self) -> None:
-        self._sock.close()
+        pass
