@@ -1,4 +1,4 @@
-[![Snapshot](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml/badge.svg)](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml) [![Release](https://github.com/Netflix/spectator-py/actions/workflows/release.yml/badge.svg)](https://github.com/Netflix/spectator-py/actions/workflows/release.yml)
+[![Snapshot](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml/badge.svg)](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml)
 
 ## Introduction
 
@@ -284,6 +284,16 @@ t = GlobalRegistry.pct_timer("thread.sleep")
 with t.stopwatch():
     time.sleep(5)
 ```
+
+## asyncio Support
+
+The `GlobalRegistry` provides a `UdpWriter` implementation of the `SidecarWriter` by default. UDP
+is a non-blocking, unordered and connectionless protocol, which is ideal for communicating with a
+local SpectatorD process in a variety of circumstances. The `UdpWriter` should be used in asyncio
+applications.
+
+The `PrintWriter` implementation, which can be used to communicate with the SpectatorD Unix domain
+socket, does not offer asyncio support at this time.
 
 ## Writing Tests
 

@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name="netflix-spectator-py",
-    version="0.2.6",
+    version="0.2.7",
     python_requires=">3.5",
     description="Python library for reporting metrics to the Netflix Atlas Timeseries Database.",
     long_description=read("README.md"),
