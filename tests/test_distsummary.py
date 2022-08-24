@@ -44,7 +44,7 @@ class PercentileDistributionSummaryTest(unittest.TestCase):
 
     def test_invalid_meter_type(self):
         with self.assertRaises(ValueError):
-            DistributionSummary(self.tid, meter_type='x')
+            DistributionSummary(self.tid, meter_type="x")
 
     def test_record(self):
         d = DistributionSummary(self.tid, meter_type="D", writer=MemoryWriter())

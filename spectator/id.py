@@ -1,13 +1,30 @@
+import logging
 from typing import Dict, Optional
 
 
 class MeterId:
     def __init__(self, name: str, tags: Optional[Dict[str, str]] = None) -> None:
+        self._logger = logging.getLogger("spectator.MeterId")
+        self.name = name
         if tags is None:
             self._tags = {}
         else:
-            self._tags = tags
-        self.name = name
+            self._tags = self._validate(tags)
+
+    def _validate(self, tags: Dict[str, str]) -> Dict[str, str]:
+        valid_tags = {}
+
+        for k, v in tags.items():
+            if not isinstance(k, str):
+                k = ''
+            if not isinstance(v, str):
+                v = ''
+            valid_tags[k] = v
+
+        if valid_tags != tags:
+            self._logger.warning("name=%s tags=%s is invalid due to tag keys or values which are not strings", self.name, tags)
+
+        return valid_tags
 
     def tags(self) -> Dict[str, str]:
         return self._tags.copy()

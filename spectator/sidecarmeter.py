@@ -6,7 +6,7 @@ from spectator.sidecarwriter import MemoryWriter, NoopWriter, PrintWriter, UdpWr
 
 
 class SidecarMeter:
-    ALLOWED_CHARS = re.compile("[^-._A-Za-z0-9~^]")
+    INVALID_CHARS = re.compile("[^-._A-Za-z0-9~^]")
 
     def __init__(self, meter_id: MeterId, meter_type: str):
         """
@@ -20,7 +20,7 @@ class SidecarMeter:
         self.idString = self._create_id_string(meter_id, meter_type)
 
     def _replace_invalid_chars(self, s: str) -> str:
-        return self.ALLOWED_CHARS.sub("_", s)
+        return self.INVALID_CHARS.sub("_", s)
 
     def _create_id_string(self, meter_id: MeterId, meter_type: str) -> str:
         s = "{}:{}".format(meter_type, self._replace_invalid_chars(meter_id.name))

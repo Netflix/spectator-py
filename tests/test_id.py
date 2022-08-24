@@ -70,3 +70,15 @@ class MeterIdTest(unittest.TestCase):
         self.assertEqual("foo", str(id1))
         id2 = MeterId("foo", {"a": "1", "b": "2", "c": "3"})
         self.assertEqual("foo,a=1,b=2,c=3", str(id2))
+
+    def test_invalid(self):
+        expected_messages = [
+            "WARNING:spectator.MeterId:name=foo tags={'a': 1} is invalid due to tag keys or values which are not strings",
+            "WARNING:spectator.MeterId:name=bar tags={1: 'a'} is invalid due to tag keys or values which are not strings"
+        ]
+        with self.assertLogs("spectator.MeterId", level='INFO') as logs:
+            id1 = MeterId("foo", {"a": 1})
+            self.assertEqual("foo,a=", str(id1))
+            id2 = MeterId("bar", {1: "a"})
+            self.assertEqual("bar,=a", str(id2))
+        self.assertEqual(expected_messages, logs.output)
