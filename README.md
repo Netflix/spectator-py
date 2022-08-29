@@ -58,7 +58,10 @@ Once the `GlobalRegistry` is imported, it is used to create and manage Meters.
 
 This package provides the following loggers:
 
+* `spectator.MeterId`
 * `spectator.SidecarWriter`
+
+The `MeterId` logger is used to report invalid meters which have not-a-str tag keys or values.
 
 When troubleshooting metrics collection and reporting, you should set the `SidecarWriter` logging
 to the `DEBUG` level, before the first metric is recorded. For example:
