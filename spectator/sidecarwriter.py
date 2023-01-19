@@ -1,6 +1,7 @@
 import logging
 import socket
 import sys
+from ipaddress import ip_address, IPv6Address
 from typing import List, TextIO, Tuple, Union
 from urllib.parse import urlparse
 
@@ -31,7 +32,7 @@ class SidecarWriter:
             return PrintWriter(location, file)
         elif location.startswith("udp://"):
             parsed = urlparse(location)
-            address = (parsed.hostname, int(parsed.port))
+            address = (parsed.hostname, parsed.port)
             return UdpWriter(location, address)
         else:
             raise ValueError("unsupported location: {}".format(location))
@@ -119,9 +120,17 @@ class UdpWriter(SidecarWriter):
     def __init__(self, location: str, address: Tuple[str, int]) -> None:
         super().__init__(location)
         self._address = address
+        try:
+            if type(ip_address(self._address[0])) is IPv6Address:
+                self._family = socket.AF_INET6
+            else:
+                self._family = socket.AF_INET
+        except ValueError:
+            # anything that does not appear to be an IPv4 or IPv6 address (i.e. hostnames)
+            self._family = socket.AF_INET
 
     def write_impl(self, line: str) -> None:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        with socket.socket(self._family, socket.SOCK_DGRAM) as s:
             s.sendto(bytes(line, encoding="utf-8"), self._address)
 
     def close(self) -> None:
