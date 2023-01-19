@@ -298,6 +298,31 @@ applications.
 The `PrintWriter` implementation, which can be used to communicate with the SpectatorD Unix domain
 socket, does not offer asyncio support at this time.
 
+## IPv6 Support
+
+By default, SpectatorD will listen on `IPv6 UDP *:1234`, without setting the `v6_only(true)`
+flag. On dual-stacked systems, this means that it will receive packets from both IPv4 and IPv6,
+and the IPv4 addresses will show up on the server as IPv4-mapped IPv6 addresses.
+
+By default, the `GlobalRegistry` will write UDP packets to `127.0.0.1:1234`, which will allow
+for communication with SpectatorD on dual-stacked systems.
+
+On IPv6-only systems, it may be necessary to change the default configuration using one of the
+following methods:
+
+* Configure the following environment variable, which will override the default configuration of
+the `GlobalRegistry`:
+
+      export SPECTATOR_OUTPUT_LOCATION="udp://[::1]:1234"
+
+* Configure a custom Registry, instead of using the `GlobalRegistry`:
+
+      from spectator import Registry
+      from spectator.sidecarconfig import SidecarConfig
+      
+      r = Registry(config=SidecarConfig({"sidecar.output-location": "udp://[::1]:1234"}))
+      r.counter("test").increment()
+
 ## Writing Tests
 
 To write tests against this library, instantiate a test instance of the Registry and configure it
