@@ -1,4 +1,4 @@
-[![Snapshot](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml/badge.svg)](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml)
+[![Snapshot](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml/badge.svg)](https://github.com/Netflix/spectator-py/actions/workflows/snapshot.yml) [![PyPI version](https://badge.fury.io/py/netflix-spectator-py.svg)](https://badge.fury.io/py/netflix-spectator-py)
 
 ## Introduction
 
