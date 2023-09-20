@@ -132,6 +132,24 @@ By default, a maximum of `1000` Age Gauges are allowed per `spectatord` process,
 mechanism for cleaning them up. This value may be tuned with the `--age_gauge_limit` flag on the
 `spectatord` binary.
 
+Since Age Gauges are long-lived entities that reside in the memory of the SpectatorD process, if
+you need to delete and re-create them for any reason, then you can use the [SpectatorD admin server]
+to accomplish this task. You can delete all Age Gauges or a single Age Gauge.
+
+Example:
+
+```
+curl -X DELETE \
+http://localhost:1234/metrics/A
+```
+
+```
+curl -X DELETE \
+http://localhost:1234/metrics/A/fooIsTheName,some.tag=val1,some.otherTag=val2
+```
+
+[SpectatorD admin server]: https://github.com/Netflix-Skunkworks/spectatord#admin-server
+
 ### Counters
 
 A Counter is used to measure the rate at which an event is occurring. Considering an API
