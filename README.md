@@ -37,13 +37,6 @@ Publishing metrics requires a [SpectatorD] process running on your instance.
 
 ### Standard Usage
 
-At Netflix, your initialization script should load the environment, to ensure that the standard
-variables are available to the Python application.
-
-```bash
-source /etc/nflx/environment
-```
-
 Importing the `GlobalRegistry` instantiates a `Registry` with a default configuration that applies
 process-specific common tags based on environment variables and opens a socket to the [SpectatorD]
 sidecar. The remainder of the instance-specific common tags are provided by SpectatorD.
@@ -104,7 +97,127 @@ requests_id.increment()
 
 ## Meter Types
 
-### Age Gauges
+### Counter
+
+A Counter is used to measure the rate at which an event is occurring. Considering an API
+endpoint, a Counter could be used to measure the rate at which it is being accessed.
+
+Counters are reported to the backend as a rate-per-second. In Atlas, the `:per-step` operator
+can be used to convert them back into a value-per-step on a graph.
+
+Call `increment()` when an event occurs:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.counter("server.numRequests").increment()
+```
+
+You can also pass a value to `increment()`. This is useful when a collection of events happens
+together:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.counter("queue.itemsAdded").increment(10)
+```
+
+### Distribution Summary
+
+A Distribution Summary is used to track the distribution of events. It is similar to a Timer, but
+more general, in that the size does not have to be a period of time. For example, a Distribution
+Summary could be used to measure the payload sizes of requests hitting a server.
+
+Always use base units when recording data, to ensure that the tick labels presented on Atlas graphs
+are readable. If you are measuring payload size, then use bytes, not kilobytes (or some other unit).
+This means that a `4K` tick label will represent 4 kilobytes, rather than 4 kilo-kilobytes.
+
+Call `record()` with a value:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.distribution_summary("server.requestSize").record(10)
+```
+
+### Gauge
+
+A gauge is a value that is sampled at some point in time. Typical examples for gauges would be
+the size of a queue or number of threads in a running state. Since gauges are not updated inline
+when a state change occurs, there is no information about what might have occurred between samples.
+
+Consider monitoring the behavior of a queue of tasks. If the data is being collected once a minute,
+then a gauge for the size will show the size when it was sampled. The size may have been much
+higher or lower at some point during interval, but that is not known.
+
+Call `set()` with a value:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.gauge("server.queueSize").set(10)
+```
+
+Gauges will report the last set value for 15 minutes. This done so that updates to the values do
+not need to be collected on a tight 1-minute schedule to ensure that Atlas shows unbroken lines in
+graphs. A custom TTL may be configured for gauges. SpectatorD enforces a minimum TTL of 5 seconds.
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.gauge("server.queueSize", ttl_seconds=120).set(10)
+```
+
+### Max Gauge
+
+The value is a number that is sampled at a point in time, but it is reported as a maximum Gauge
+value to the backend. This ensures that only the maximum value observed during a reporting interval
+is sent to the backend, thus over-riding the last-write-wins semantics of standard Gauges. Unlike
+standard Gauges, Max Gauges do not continue to report to the backend, and there is no TTL.
+
+Call `set()` with a value:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.max_gauge("server.queueSize").set(10)
+```
+
+### Timer
+
+A Timer is used to measure how long (in seconds) some event is taking.
+
+Call `record()` with a value:
+
+```python
+from spectator import GlobalRegistry
+
+GlobalRegistry.timer("server.requestLatency").record(0.01)
+```
+
+A `stopwatch()` method is available which may be used as a [Context Manager] to automatically record
+the number of seconds that have elapsed while executing a block of code:
+
+```python
+import time
+from spectator import GlobalRegistry
+
+t = GlobalRegistry.timer("thread.sleep")
+
+with t.stopwatch():
+    time.sleep(5)
+```
+
+Internally, Timers will keep track of the following statistics as they are used:
+
+* `count`
+* `totalTime`
+* `totalOfSquares`
+* `max`
+
+[Context Manager]: https://docs.python.org/3/reference/datamodel.html#context-managers
+
+### Age Gauge
 
 The value is the time in seconds since the epoch at which an event has successfully occurred, or
 `0` to use the current time in epoch seconds. After an Age Gauge has been set, it will continue
@@ -150,50 +263,23 @@ http://localhost:1234/metrics/A/fooIsTheName,some.tag=val1,some.otherTag=val2
 
 [SpectatorD admin server]: https://github.com/Netflix-Skunkworks/spectatord#admin-server
 
-### Counters
+### Monotonic Counter
 
-A Counter is used to measure the rate at which an event is occurring. Considering an API
-endpoint, a Counter could be used to measure the rate at which it is being accessed.
+A Monotonic Counter is used to measure the rate at which an event is occurring, when the source
+data is a monotonically increasing number. A minimum of two samples must be sent, in order to
+calculate a delta value and report it to the backend as a rate-per-second. A variety of networking
+metrics may be reported monotonically, and this metric type provides a convenient means of recording
+these values, at the expense of a slower time-to-first metric.
 
-Counters are reported to the backend as a rate-per-second. In Atlas, the `:per-step` operator
-can be used to convert them back into a value-per-step on a graph.
-
-Call `increment()` when an event occurs:
-
-```python
-from spectator import GlobalRegistry
-
-GlobalRegistry.counter("server.numRequests").increment()
-```
-
-You can also pass a value to `increment()`. This is useful when a collection of events happens
-together:
+Call `set()` when an event occurs:
 
 ```python
 from spectator import GlobalRegistry
 
-GlobalRegistry.counter("queue.itemsAdded").increment(10)
+GlobalRegistry.monotonic_counter("iface.bytes").set(10)
 ```
 
-### Distribution Summaries
-
-A Distribution Summary is used to track the distribution of events. It is similar to a Timer, but
-more general, in that the size does not have to be a period of time. For example, a Distribution
-Summary could be used to measure the payload sizes of requests hitting a server.
-
-Always use base units when recording data, to ensure that the tick labels presented on Atlas graphs
-are readable. If you are measuring payload size, then use bytes, not kilobytes (or some other unit).
-This means that a `4K` tick label will represent 4 kilobytes, rather than 4 kilo-kilobytes.
-
-Call `record()` with a value:
-
-```python
-from spectator import GlobalRegistry
-
-GlobalRegistry.distribution_summary("server.requestSize").record(10)
-```
-
-### Percentile Distribution Summaries
+### Percentile Distribution Summary
 
 The value tracks the distribution of events, with percentile estimates. It is similar to a
 Percentile Timer, but more general, because the size does not have to be a period of time.
@@ -213,67 +299,7 @@ from spectator import GlobalRegistry
 GlobalRegistry.pct_distribution_summary("server.requestSize").record(10)
 ```
 
-### Gauges
-
-A gauge is a value that is sampled at some point in time. Typical examples for gauges would be
-the size of a queue or number of threads in a running state. Since gauges are not updated inline
-when a state change occurs, there is no information about what might have occurred between samples.
-
-Consider monitoring the behavior of a queue of tasks. If the data is being collected once a minute,
-then a gauge for the size will show the size when it was sampled. The size may have been much
-higher or lower at some point during interval, but that is not known.
-
-Call `set()` with a value:
-
-```python
-from spectator import GlobalRegistry
-
-GlobalRegistry.gauge("server.queueSize").set(10)
-```
-
-Gauges will report the last set value for 15 minutes. This done so that updates to the values do
-not need to be collected on a tight 1-minute schedule to ensure that Atlas shows unbroken lines in
-graphs. A custom TTL may be configured for gauges. SpectatorD enforces a minimum TTL of 5 seconds.
-
-```python
-from spectator import GlobalRegistry
-
-GlobalRegistry.gauge("server.queueSize", ttl_seconds=120).set(10)
-```
-
-### Timers
-
-A Timer is used to measure how long (in seconds) some event is taking.
-
-Call `record()` with a value:
-
-```python
-from spectator import GlobalRegistry
-
-GlobalRegistry.timer("server.requestLatency").record(0.01)
-```
-
-A `stopwatch()` method is available which may be used as a [Context Manager](https://docs.python.org/3/reference/datamodel.html#context-managers)
-to automatically record the number of seconds that have elapsed while executing a block of code:
-
-```python
-import time
-from spectator import GlobalRegistry
-
-t = GlobalRegistry.timer("thread.sleep")
-
-with t.stopwatch():
-    time.sleep(5)
-```
-
-Internally, Timers will keep track of the following statistics as they are used:
-
-* `count`
-* `totalTime`
-* `totalOfSquares`
-* `max`
-
-### Percentile Timers
+### Percentile Timer
 
 The value is the number of seconds that have elapsed for an event, with percentile estimates.
 
