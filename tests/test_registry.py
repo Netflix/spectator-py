@@ -1,70 +1,138 @@
+import logging
 import unittest
 
-from spectator import ManualClock, Registry
-from spectator.sidecarconfig import SidecarConfig
-from spectator.sidecarwriter import MemoryWriter
+from spectator.registry import Registry
+from spectator.config import Config
+from spectator.writer.memory_writer import MemoryWriter
 
 
 class RegistryTest(unittest.TestCase):
 
-    def test_writer(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
-        self.assertTrue(isinstance(r.writer(), MemoryWriter))
+    def test_close(self):
+        r = Registry(Config("memory"))
+
+        c = r.counter("counter")
+        c.increment()
+        self.assertEqual("c:counter:1", r.writer().last_line())
+
+        r.close()
+        self.assertTrue(r.writer().is_empty())
 
     def test_age_gauge(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+        r = Registry(Config("memory"))
 
-        g = r.age_gauge("test")
+        g1 = r.age_gauge("age_gauge")
+        g2 = r.age_gauge("age_gauge", {"my-tags": "bar"})
+        self.assertTrue(r.writer().is_empty())
+
+        g1.set(1)
+        self.assertEqual("A:age_gauge:1", r.writer().last_line())
+
+        g2.set(2)
+        self.assertEqual("A:age_gauge,my-tags=bar:2", r.writer().last_line())
+
+    def test_age_gauge_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        g = r.age_gauge_with_id(r.new_id("age_gauge", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         g.set(0)
-        self.assertEqual("A:test:0", r.writer().last_line())
+        self.assertEqual("A:age_gauge,extra-tags=foo,my-tags=bar:0", r.writer().last_line())
 
     def test_counter(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+        r = Registry(Config("memory"))
 
-        c = r.counter("test")
+        c1 = r.counter("counter")
+        c2 = r.counter("counter", {"my-tags": "bar"})
+        self.assertTrue(r.writer().is_empty())
+
+        c1.increment()
+        self.assertEqual("c:counter:1", r.writer().last_line())
+
+        c2.increment()
+        self.assertEqual("c:counter,my-tags=bar:1", r.writer().last_line())
+
+        c1.increment(2)
+        self.assertEqual("c:counter:2", r.writer().last_line())
+
+        c2.increment(2)
+        self.assertEqual("c:counter,my-tags=bar:2", r.writer().last_line())
+
+        r.counter("counter").increment(3)
+        self.assertEqual("c:counter:3", r.writer().last_line())
+
+    def test_counter_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        c = r.counter_with_id(r.new_id("counter", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         c.increment()
-        self.assertEqual("c:test:1", r.writer().last_line())
+        self.assertEqual("c:counter,extra-tags=foo,my-tags=bar:1", r.writer().last_line())
 
-    def test_counter_without_reference(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
-        self.assertTrue(r.writer().is_empty())
+        c.increment(2)
+        self.assertEqual("c:counter,extra-tags=foo,my-tags=bar:2", r.writer().last_line())
 
-        r.counter("test").increment()
-        self.assertEqual("c:test:1", r.writer().last_line())
+        r.counter("counter").increment(3)
+        self.assertEqual("c:counter,extra-tags=foo:3", r.writer().last_line())
 
-    def test_distsummary(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+    def test_distribution_summary(self):
+        r = Registry(Config("memory"))
 
-        d = r.distribution_summary("test")
+        d = r.distribution_summary("distribution_summary")
         self.assertTrue(r.writer().is_empty())
 
         d.record(42)
-        self.assertEqual("d:test:42", r.writer().last_line())
+        self.assertEqual("d:distribution_summary:42", r.writer().last_line())
+
+    def test_distribution_summary_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        d = r.distribution_summary_with_id(r.new_id("distribution_summary", {"my-tags": "bar"}))
+        self.assertTrue(r.writer().is_empty())
+
+        d.record(42)
+        self.assertEqual("d:distribution_summary,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
 
     def test_gauge(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+        r = Registry(Config("memory"))
 
-        g = r.gauge("test")
+        g = r.gauge("gauge")
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
-        self.assertEqual("g:test:42", r.writer().last_line())
+        self.assertEqual("g:gauge:42", r.writer().last_line())
 
-    def test_gauge_ttl_seconds(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+    def test_gauge_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        g = r.gauge("test", ttl_seconds=120)
+        g = r.gauge_with_id(r.new_id("gauge", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
-        self.assertEqual("g,120:test:42", r.writer().last_line())
+        self.assertEqual("g:gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+
+    def test_gauge_with_id_with_ttl_seconds(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        g = r.gauge_with_id(r.new_id("gauge", {"my-tags": "bar"}), ttl_seconds=120)
+        self.assertTrue(r.writer().is_empty())
+
+        g.set(42)
+        self.assertEqual("g,120:gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+
+    def test_gauge_with_ttl_seconds(self):
+        r = Registry(Config("memory"))
+
+        g = r.gauge("gauge", ttl_seconds=120)
+        self.assertTrue(r.writer().is_empty())
+
+        g.set(42)
+        self.assertEqual("g,120:gauge:42", r.writer().last_line())
 
     def test_max_gauge(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+        r = Registry(Config("memory"))
 
         g = r.max_gauge("test")
         self.assertTrue(r.writer().is_empty())
@@ -72,44 +140,80 @@ class RegistryTest(unittest.TestCase):
         g.set(42)
         self.assertEqual("m:test:42", r.writer().last_line())
 
-    def test_monotonic_counter(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+    def test_max_gauge_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        c = r.monotonic_counter("test")
+        g = r.max_gauge_with_id(r.new_id("max_gauge", {"my-tags": "bar"}))
+        self.assertTrue(r.writer().is_empty())
+
+        g.set(42)
+        self.assertEqual("m:max_gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+
+    def test_monotonic_counter(self):
+        r = Registry(Config("memory"))
+
+        c = r.monotonic_counter("monotonic_counter")
         self.assertTrue(r.writer().is_empty())
 
         c.set(42)
-        self.assertEqual("C:test:42", r.writer().last_line())
+        self.assertEqual("C:monotonic_counter:42", r.writer().last_line())
 
-    def test_pct_distsummary(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+    def test_monotonic_counter_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        d = r.pct_distribution_summary("test")
+        c = r.monotonic_counter_with_id(r.new_id("monotonic_counter", {"my-tags": "bar"}))
+        self.assertTrue(r.writer().is_empty())
+
+        c.set(42)
+        self.assertEqual("C:monotonic_counter,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+
+    def test_new_id(self):
+        r1 = Registry(Config("memory"))
+        id1 = r1.new_id("id")
+        self.assertEqual("Id(name=id, tags={})", str(id1))
+
+        r2 = Registry(Config("memory", {"extra-tags": "foo"}))
+        id2 = r2.new_id("id")
+        self.assertEqual("Id(name=id, tags={'extra-tags': 'foo'})", str(id2))
+
+    def test_pct_distribution_summary(self):
+        r = Registry(Config("memory"))
+
+        d = r.pct_distribution_summary("pct_distribution_summary")
         self.assertTrue(r.writer().is_empty())
 
         d.record(42)
-        self.assertEqual("D:test:42", r.writer().last_line())
+        self.assertEqual("D:pct_distribution_summary:42", r.writer().last_line())
+
+    def test_pct_distribution_summary_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        d = r.pct_distribution_summary_with_id(r.new_id("pct_distribution_summary", {"my-tags": "bar"}))
+        self.assertTrue(r.writer().is_empty())
+
+        d.record(42)
+        self.assertEqual("D:pct_distribution_summary,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
 
     def test_pct_timer(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+        r = Registry(Config("memory"))
 
-        t = r.pct_timer("test")
+        t = r.pct_timer("timer")
         self.assertTrue(r.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("T:test:42", r.writer().last_line())
+        self.assertEqual("T:timer:42", r.writer().last_line())
 
-    def test_pct_timer_stopwatch(self):
-        clock = ManualClock()
-        r = Registry(clock=clock, config=SidecarConfig({"sidecar.output-location": "memory"}))
+    def test_pct_timer_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        t = r.pct_timer("test")
-        with t.stopwatch():
-            clock.set_monotonic_time(42)
-        self.assertEqual("T:test:42", r.writer().last_line())
+        t = r.pct_timer_with_id(r.new_id("timer", {"my-tags": "bar"}))
+        self.assertTrue(r.writer().is_empty())
+
+        t.record(42)
+        self.assertEqual("T:timer,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
 
     def test_timer(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+        r = Registry(Config("memory"))
 
         t = r.timer("test")
         self.assertTrue(r.writer().is_empty())
@@ -117,32 +221,30 @@ class RegistryTest(unittest.TestCase):
         t.record(42)
         self.assertEqual("t:test:42", r.writer().last_line())
 
-    def test_timer_stopwatch(self):
-        clock = ManualClock()
-        r = Registry(clock=clock, config=SidecarConfig({"sidecar.output-location": "memory"}))
+    def test_timer_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        t = r.timer("test")
-        with t.stopwatch():
-            clock.set_monotonic_time(42)
-        self.assertEqual("t:test:42", r.writer().last_line())
-
-    def test_close(self):
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
-        c = r.counter("test")
-        c.increment()
-        self.assertEqual("c:test:1", r.writer().last_line())
-        r.close()
+        t = r.timer_with_id(r.new_id("timer", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
-    def test_iterate(self):
-        """Avoid breaking the API."""
-        r = Registry(config=SidecarConfig({"sidecar.output-location": "memory"}))
+        t.record(42)
+        self.assertEqual("t:timer,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
 
-        for _ in r:
-            self.fail("registry should be empty")
+    def test_writer(self):
+        r = Registry(Config("memory"))
+        self.assertTrue(isinstance(r.writer(), MemoryWriter))
 
-        r.counter("counter")
-        r.timer("timer")
+    def test_writer_debug_logging(self):
+        logging.getLogger("spectator.writer").setLevel(logging.DEBUG)
+        r = Registry(Config("memory"))
+        self.assertTrue(r.writer().is_empty())
 
-        for _ in r:
-            self.fail("registry no longer holds references to MeterIds")
+        expected_messages = [
+            "DEBUG:spectator.writer:write line=c:counter:1",
+        ]
+
+        with self.assertLogs("spectator.writer", level='DEBUG') as logs:
+            c = r.counter("counter")
+            c.increment()
+
+        self.assertEqual(expected_messages, logs.output)
