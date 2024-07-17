@@ -1,12 +1,12 @@
 import unittest
 
 from spectator.meter.gauge import Gauge
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.writer.memory_writer import MemoryWriter
 
 
 class GaugeTest(unittest.TestCase):
-    tid = Id("gauge")
+    tid = MeterId("gauge")
 
     def test_set(self):
         g = Gauge(self.tid, MemoryWriter())

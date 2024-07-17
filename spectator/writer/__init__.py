@@ -4,7 +4,7 @@ import logging
 
 class Writer(metaclass=abc.ABCMeta):
     def __init__(self):
-        self._logger = logging.getLogger("spectator.writer")
+        self._logger = logging.getLogger(__name__)
 
     @abc.abstractmethod
     def write(self, line: str) -> None:

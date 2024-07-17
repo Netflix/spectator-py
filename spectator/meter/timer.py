@@ -1,15 +1,13 @@
 from spectator.meter import Meter
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import new_writer, WriterUnion
 
 
 class Timer(Meter):
-    """The value is the number of seconds that have elapsed for an event. A stopwatch method
-    is available, which provides a context manager that can be used to automate recording the
-    timing for a block of code using the `with` statement."""
+    """The value is the number of seconds that have elapsed for an event."""
 
-    def __init__(self, id: Id, writer: WriterUnion= new_writer("none")) -> None:
-        super().__init__(id, writer, "t")
+    def __init__(self, meter_id: MeterId, writer: WriterUnion= new_writer("none")) -> None:
+        super().__init__(meter_id, writer, "t")
 
     def record(self, seconds: float) -> None:
         if seconds >= 0:

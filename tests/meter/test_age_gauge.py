@@ -1,12 +1,12 @@
 import unittest
 
 from spectator.meter.age_gauge import AgeGauge
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.writer.memory_writer import MemoryWriter
 
 
 class AgeGaugeTest(unittest.TestCase):
-    tid = Id("age_gauge")
+    tid = MeterId("age_gauge")
 
     def test_now(self):
         g = AgeGauge(self.tid, MemoryWriter())

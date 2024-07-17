@@ -50,8 +50,8 @@ class ConfigTest(unittest.TestCase):
 
     def test_extra_common_tags(self):
         self.setup_environment()
-        config = Config(common_tags={"extra-tag": "foo"})
-        self.assertEqual({'extra-tag': 'foo', 'nf.container': 'main', 'nf.process': 'python'}, config.common_tags)
+        config = Config(extra_common_tags={"extra-tag": "foo"})
+        self.assertEqual({'extra-tag': 'foo', 'nf.container': 'main', 'nf.process': 'python'}, config.extra_common_tags)
 
     def test_valid_output_locations(self):
         self.assertEqual("none", self.get_location("none"))

@@ -1,12 +1,12 @@
 import unittest
 
 from spectator.meter.percentile_dist_summary import PercentileDistributionSummary
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.writer.memory_writer import MemoryWriter
 
 
 class PercentileDistributionSummaryTest(unittest.TestCase):
-    tid = Id("percentile_dist_summary")
+    tid = MeterId("percentile_dist_summary")
 
     def test_record(self):
         d = PercentileDistributionSummary(self.tid, writer=MemoryWriter())

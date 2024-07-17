@@ -34,7 +34,7 @@ class RegistryTest(unittest.TestCase):
     def test_age_gauge_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        g = r.age_gauge_with_id(r.new_id("age_gauge", {"my-tags": "bar"}))
+        g = r.age_gauge_with_meter_id(r.new_id("age_gauge", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         g.set(0)
@@ -65,7 +65,7 @@ class RegistryTest(unittest.TestCase):
     def test_counter_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        c = r.counter_with_id(r.new_id("counter", {"my-tags": "bar"}))
+        c = r.counter_with_meter_id(r.new_id("counter", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         c.increment()
@@ -89,7 +89,7 @@ class RegistryTest(unittest.TestCase):
     def test_distribution_summary_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        d = r.distribution_summary_with_id(r.new_id("distribution_summary", {"my-tags": "bar"}))
+        d = r.distribution_summary_with_meter_id(r.new_id("distribution_summary", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         d.record(42)
@@ -107,7 +107,7 @@ class RegistryTest(unittest.TestCase):
     def test_gauge_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        g = r.gauge_with_id(r.new_id("gauge", {"my-tags": "bar"}))
+        g = r.gauge_with_meter_id(r.new_id("gauge", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
@@ -116,7 +116,7 @@ class RegistryTest(unittest.TestCase):
     def test_gauge_with_id_with_ttl_seconds(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        g = r.gauge_with_id(r.new_id("gauge", {"my-tags": "bar"}), ttl_seconds=120)
+        g = r.gauge_with_meter_id(r.new_id("gauge", {"my-tags": "bar"}), ttl_seconds=120)
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
@@ -134,16 +134,16 @@ class RegistryTest(unittest.TestCase):
     def test_max_gauge(self):
         r = Registry(Config("memory"))
 
-        g = r.max_gauge("test")
+        g = r.max_gauge("max_gauge")
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
-        self.assertEqual("m:test:42", r.writer().last_line())
+        self.assertEqual("m:max_gauge:42", r.writer().last_line())
 
     def test_max_gauge_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        g = r.max_gauge_with_id(r.new_id("max_gauge", {"my-tags": "bar"}))
+        g = r.max_gauge_with_meter_id(r.new_id("max_gauge", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
@@ -161,7 +161,7 @@ class RegistryTest(unittest.TestCase):
     def test_monotonic_counter_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        c = r.monotonic_counter_with_id(r.new_id("monotonic_counter", {"my-tags": "bar"}))
+        c = r.monotonic_counter_with_meter_id(r.new_id("monotonic_counter", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         c.set(42)
@@ -188,7 +188,7 @@ class RegistryTest(unittest.TestCase):
     def test_pct_distribution_summary_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        d = r.pct_distribution_summary_with_id(r.new_id("pct_distribution_summary", {"my-tags": "bar"}))
+        d = r.pct_distribution_summary_with_meter_id(r.new_id("pct_distribution_summary", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         d.record(42)
@@ -197,34 +197,34 @@ class RegistryTest(unittest.TestCase):
     def test_pct_timer(self):
         r = Registry(Config("memory"))
 
-        t = r.pct_timer("timer")
+        t = r.pct_timer("pct_timer")
         self.assertTrue(r.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("T:timer:42", r.writer().last_line())
+        self.assertEqual("T:pct_timer:42", r.writer().last_line())
 
     def test_pct_timer_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        t = r.pct_timer_with_id(r.new_id("timer", {"my-tags": "bar"}))
+        t = r.pct_timer_with_meter_id(r.new_id("pct_timer", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("T:timer,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual("T:pct_timer,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
 
     def test_timer(self):
         r = Registry(Config("memory"))
 
-        t = r.timer("test")
+        t = r.timer("timer")
         self.assertTrue(r.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("t:test:42", r.writer().last_line())
+        self.assertEqual("t:timer:42", r.writer().last_line())
 
     def test_timer_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        t = r.timer_with_id(r.new_id("timer", {"my-tags": "bar"}))
+        t = r.timer_with_meter_id(r.new_id("timer", {"my-tags": "bar"}))
         self.assertTrue(r.writer().is_empty())
 
         t.record(42)

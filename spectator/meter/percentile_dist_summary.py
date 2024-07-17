@@ -1,5 +1,5 @@
 from spectator.meter import Meter
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import new_writer, WriterUnion
 
 
@@ -14,8 +14,8 @@ class PercentileDistributionSummary(Meter):
     diligent about any additional dimensions added to Percentile Distribution Summaries and ensure
     that they have a small bounded cardinality."""
 
-    def __init__(self, id: Id, writer: WriterUnion = new_writer("none")) -> None:
-        super().__init__(id, writer, "D")
+    def __init__(self, meter_id: MeterId, writer: WriterUnion = new_writer("none")) -> None:
+        super().__init__(meter_id, writer, "D")
 
     def record(self, amount: int) -> None:
         if amount >= 0:

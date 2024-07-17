@@ -5,8 +5,8 @@ from spectator.meter.age_gauge import AgeGauge
 from spectator.meter.counter import Counter
 from spectator.meter.dist_summary import DistributionSummary
 from spectator.meter.gauge import Gauge
-from spectator.meter.id import Id
 from spectator.meter.max_gauge import MaxGauge
+from spectator.meter.meter_id import MeterId
 from spectator.meter.monotonic_counter import MonotonicCounter
 from spectator.meter.monotonic_counter_uint import MonotonicCounterUint
 from spectator.meter.percentile_dist_summary import PercentileDistributionSummary
@@ -32,8 +32,8 @@ def get_meter_class(symbol: str) -> Type[Meter]:
     return _METER_CLASSES.get(symbol)
 
 
-def parse_protocol_line(line: str) -> Tuple[str, Id, str]:
-    """Parse SpectatorD protocol line. Utility exposed for testing."""
+def parse_protocol_line(line: str) -> Tuple[str, MeterId, str]:
+    """Parse a SpectatorD protocol line into component parts. Utility exposed for testing."""
     symbol, id, value = line.split(":")
     # remove optional parts, such as gauge ttls
     symbol = symbol.split(",")[0]
@@ -45,4 +45,4 @@ def parse_protocol_line(line: str) -> Tuple[str, Id, str]:
         k, v = tag.split("=")
         tags[k] = v
 
-    return symbol, Id(name, tags), value
+    return symbol, MeterId(name, tags), value
