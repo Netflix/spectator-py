@@ -2,7 +2,7 @@
 
 See [Publishing package distribution releases using GitHub Actions CI/CD workflows](https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/) for more details.
 
-1. Bump the version number in [setup.py](./setup.py).
+1. Bump the version number in [setup.cfg](./setup.cfg).
 
 1. Tag the repo and write release notes. The goal is for the [releases] page to be readable.
 
@@ -42,7 +42,7 @@ See [Publishing package distribution releases using GitHub Actions CI/CD workflo
             username: $PYPI_USERNAME
             EOF
 
-1. Bump the version number in [setup.py](./setup.py).
+1. Bump the version number in [setup.cfg](./setup.cfg).
 
 1. Tag the repo and write release notes. The goal is for the [releases] page to be readable.
 
