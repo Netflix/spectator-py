@@ -1,12 +1,12 @@
 import unittest
 
 from spectator.meter.dist_summary import DistributionSummary
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.writer.memory_writer import MemoryWriter
 
 
 class DistributionSummaryTest(unittest.TestCase):
-    tid = Id("dist_summary")
+    tid = MeterId("dist_summary")
 
     def test_record(self):
         d = DistributionSummary(self.tid, MemoryWriter())

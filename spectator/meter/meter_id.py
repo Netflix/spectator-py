@@ -5,13 +5,17 @@ from typing import Dict, Optional
 from spectator.common_tags import validate_tags
 
 
-class Id:
+class MeterId:
+    """The name and tags which uniquely identify a Meter instance. The tags are key-value pairs of
+    strings. This class should NOT be used directly. Instead, use the Registry.new_id() method, to
+    ensure that any extra common tags are properly applied to the Meter."""
+
     INVALID_CHARS = re.compile("[^-._A-Za-z0-9~^]")
 
     def __init__(self, name: str, tags: Optional[Dict[str, str]] = None) -> None:
         if tags is None:
             tags = {}
-        self._logger = logging.getLogger("spectator.meter.id")
+        self._logger = logging.getLogger(__name__)
         self._name = name
         self._tags = self._validate_tags(tags)
         self.spectatord_id = self._to_spectatord_id(self._name, self._tags)
@@ -45,17 +49,17 @@ class Id:
     def tags(self) -> Dict[str, str]:
         return self._tags.copy()
 
-    def with_tag(self, k: str, v: str) -> "Id":
+    def with_tag(self, k: str, v: str) -> "MeterId":
         new_tags = self._tags.copy()
         new_tags[k] = v
-        return Id(self._name, new_tags)
+        return MeterId(self._name, new_tags)
 
-    def with_tags(self, tags: Dict[str, str]) -> "Id":
+    def with_tags(self, tags: Dict[str, str]) -> "MeterId":
         if len(tags) == 0:
             return self
         new_tags = self._tags.copy()
         new_tags.update(tags)
-        return Id(self._name, new_tags)
+        return MeterId(self._name, new_tags)
 
     def __hash__(self):
         return hash((self._name, frozenset(self._tags.items())))

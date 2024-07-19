@@ -1,12 +1,12 @@
 import unittest
 
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.meter.timer import Timer
 from spectator.writer.memory_writer import MemoryWriter
 
 
 class TimerTest(unittest.TestCase):
-    tid = Id("timer")
+    tid = MeterId("timer")
 
     def test_record(self):
         t = Timer(self.tid, MemoryWriter())

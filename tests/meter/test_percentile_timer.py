@@ -1,12 +1,12 @@
 import unittest
 
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.meter.percentile_timer import PercentileTimer
 from spectator.writer.memory_writer import MemoryWriter
 
 
 class PercentileTimerTest(unittest.TestCase):
-    tid = Id("percentile_timer")
+    tid = MeterId("percentile_timer")
 
     def test_record(self):
         t = PercentileTimer(self.tid, MemoryWriter())

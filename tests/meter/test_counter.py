@@ -1,12 +1,12 @@
 import unittest
 
 from spectator.meter.counter import Counter
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.writer.memory_writer import MemoryWriter
 
 
 class CounterTest(unittest.TestCase):
-    tid = Id("counter")
+    tid = MeterId("counter")
 
     def test_increment(self):
         c = Counter(self.tid, MemoryWriter())

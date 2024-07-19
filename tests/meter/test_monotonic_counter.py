@@ -1,12 +1,12 @@
 import unittest
 
 from spectator.meter.monotonic_counter import MonotonicCounter
-from spectator.meter.id import Id
+from spectator.meter.meter_id import MeterId
 from spectator.writer.memory_writer import MemoryWriter
 
 
 class MonotonicCounterTest(unittest.TestCase):
-    tid = Id("monotonic_counter")
+    tid = MeterId("monotonic_counter")
 
     def test_set(self):
         c = MonotonicCounter(self.tid, writer=MemoryWriter())
