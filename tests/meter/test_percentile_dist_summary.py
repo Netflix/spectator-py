@@ -24,3 +24,10 @@ class PercentileDistributionSummaryTest(unittest.TestCase):
         d = PercentileDistributionSummary(self.tid, writer=MemoryWriter())
         d.record(0)
         self.assertEqual("D:percentile_dist_summary:0", d.writer().last_line())
+
+    def test_update(self):
+        d = PercentileDistributionSummary(self.tid, writer=MemoryWriter())
+        self.assertTrue(d.writer().is_empty())
+
+        d.update(42)
+        self.assertEqual("D:percentile_dist_summary:42", d.writer().last_line())

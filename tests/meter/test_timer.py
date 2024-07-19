@@ -24,3 +24,10 @@ class TimerTest(unittest.TestCase):
         t = Timer(self.tid, MemoryWriter())
         t.record(0)
         self.assertEqual("t:timer:0", t.writer().last_line())
+
+    def test_update(self):
+        t = Timer(self.tid, MemoryWriter())
+        self.assertTrue(t.writer().is_empty())
+
+        t.update(42)
+        self.assertEqual("t:timer:42", t.writer().last_line())

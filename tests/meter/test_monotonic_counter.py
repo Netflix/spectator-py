@@ -21,3 +21,10 @@ class MonotonicCounterTest(unittest.TestCase):
 
         c.set(-1)
         self.assertEqual("C:monotonic_counter:-1", c.writer().last_line())
+
+    def test_update(self):
+        c = MonotonicCounter(self.tid, writer=MemoryWriter())
+        self.assertTrue(c.writer().is_empty())
+
+        c.update(1)
+        self.assertEqual("C:monotonic_counter:1", c.writer().last_line())

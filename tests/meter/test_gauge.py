@@ -19,3 +19,10 @@ class GaugeTest(unittest.TestCase):
         g = Gauge(self.tid, MemoryWriter(), 120)
         g.set(42)
         self.assertEqual("g,120:gauge:42", g.writer().last_line())
+
+    def test_update(self):
+        g = Gauge(self.tid, MemoryWriter())
+        self.assertTrue(g.writer().is_empty())
+
+        g.update(1)
+        self.assertEqual("g:gauge:1", g.writer().last_line())

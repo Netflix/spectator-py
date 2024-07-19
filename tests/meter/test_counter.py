@@ -22,3 +22,10 @@ class CounterTest(unittest.TestCase):
         c = Counter(self.tid, MemoryWriter())
         c.increment(-1)
         self.assertTrue(c.writer().is_empty())
+
+    def test_update(self):
+        c = Counter(self.tid, MemoryWriter())
+        self.assertTrue(c.writer().is_empty())
+
+        c.update(3)
+        self.assertEqual("c:counter:3", c.writer().last_line())

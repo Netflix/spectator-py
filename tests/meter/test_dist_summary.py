@@ -24,3 +24,10 @@ class DistributionSummaryTest(unittest.TestCase):
         d = DistributionSummary(self.tid, MemoryWriter())
         d.record(0)
         self.assertEqual("d:dist_summary:0", d.writer().last_line())
+
+    def test_update(self):
+        d = DistributionSummary(self.tid, MemoryWriter())
+        self.assertTrue(d.writer().is_empty())
+
+        d.update(42)
+        self.assertEqual("d:dist_summary:42", d.writer().last_line())

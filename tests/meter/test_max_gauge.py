@@ -14,3 +14,10 @@ class MaxGaugeTest(unittest.TestCase):
 
         g.set(0)
         self.assertEqual("m:max_gauge:0", g.writer().last_line())
+
+    def test_update(self):
+        g = MaxGauge(self.tid, MemoryWriter())
+        self.assertTrue(g.writer().is_empty())
+
+        g.update(0)
+        self.assertEqual("m:max_gauge:0", g.writer().last_line())

@@ -21,3 +21,10 @@ class AgeGaugeTest(unittest.TestCase):
 
         g.set(10)
         self.assertEqual("A:age_gauge:10", g.writer().last_line())
+
+    def test_update(self):
+        g = AgeGauge(self.tid, MemoryWriter())
+        self.assertTrue(g.writer().is_empty())
+
+        g.update(10)
+        self.assertEqual("A:age_gauge:10", g.writer().last_line())

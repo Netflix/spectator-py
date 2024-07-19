@@ -24,3 +24,10 @@ class PercentileTimerTest(unittest.TestCase):
         t = PercentileTimer(self.tid, MemoryWriter())
         t.record(0)
         self.assertEqual("T:percentile_timer:0", t.writer().last_line())
+
+    def test_update(self):
+        t = PercentileTimer(self.tid, MemoryWriter())
+        self.assertTrue(t.writer().is_empty())
+
+        t.update(42)
+        self.assertEqual("T:percentile_timer:42", t.writer().last_line())

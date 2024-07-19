@@ -22,3 +22,10 @@ class MonotonicCounterUintTest(unittest.TestCase):
 
         c.set(ctypes.c_uint64(-1))
         self.assertEqual("U:monotonic_counter_uint:18446744073709551615", c.writer().last_line())
+
+    def test_update(self):
+        c = MonotonicCounterUint(self.tid, writer=MemoryWriter())
+        self.assertTrue(c.writer().is_empty())
+
+        c.update(ctypes.c_uint64(1))
+        self.assertEqual("U:monotonic_counter_uint:1", c.writer().last_line())
