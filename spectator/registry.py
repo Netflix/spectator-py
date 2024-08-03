@@ -37,7 +37,7 @@ class Registry:
 
     def new_id(self, name: str, tags: Optional[dict] = None) -> MeterId:
         """Create a new MeterId, which applies any configured extra common tags,
-        and can be used as an input to the *_with_meter_id Registry methods."""
+        and can be used as an input to the *_with_id Registry methods."""
         if tags is None:
             tags = {}
 
@@ -51,59 +51,59 @@ class Registry:
     def age_gauge(self, name: str, tags: Optional[dict] = None) -> AgeGauge:
         return AgeGauge(self.new_id(name, tags), self._writer)
 
-    def age_gauge_with_meter_id(self, meter_id: MeterId) -> AgeGauge:
+    def age_gauge_with_id(self, meter_id: MeterId) -> AgeGauge:
         return AgeGauge(meter_id, self._writer)
 
     def counter(self, name: str, tags: Optional[dict] = None) -> Counter:
         return Counter(self.new_id(name, tags), self._writer)
 
-    def counter_with_meter_id(self, meter_id: MeterId) -> Counter:
+    def counter_with_id(self, meter_id: MeterId) -> Counter:
         return Counter(meter_id, self._writer)
 
     def distribution_summary(self, name: str, tags: Optional[dict] = None) -> DistributionSummary:
         return DistributionSummary(self.new_id(name, tags), self._writer)
 
-    def distribution_summary_with_meter_id(self, meter_id: MeterId) -> DistributionSummary:
+    def distribution_summary_with_id(self, meter_id: MeterId) -> DistributionSummary:
         return DistributionSummary(meter_id, self._writer)
 
     def gauge(self, name: str, tags: Optional[dict] = None, ttl_seconds: Optional[int] = None) -> Gauge:
         return Gauge(self.new_id(name, tags), self._writer, ttl_seconds)
 
-    def gauge_with_meter_id(self, meter_id: MeterId, ttl_seconds: Optional[int] = None) -> Gauge:
+    def gauge_with_id(self, meter_id: MeterId, ttl_seconds: Optional[int] = None) -> Gauge:
         return Gauge(meter_id, self._writer, ttl_seconds)
 
     def max_gauge(self, name: str, tags: Optional[dict] = None) -> MaxGauge:
         return MaxGauge(self.new_id(name, tags), self._writer)
 
-    def max_gauge_with_meter_id(self, meter_id: MeterId) -> MaxGauge:
+    def max_gauge_with_id(self, meter_id: MeterId) -> MaxGauge:
         return MaxGauge(meter_id, self._writer)
 
     def monotonic_counter(self, name: str, tags: Optional[dict] = None) -> MonotonicCounter:
         return MonotonicCounter(self.new_id(name, tags), self._writer)
 
-    def monotonic_counter_with_meter_id(self, meter_id: MeterId) -> MonotonicCounter:
+    def monotonic_counter_with_id(self, meter_id: MeterId) -> MonotonicCounter:
         return MonotonicCounter(meter_id, self._writer)
 
     def monotonic_counter_uint(self, name: str, tags: Optional[dict] = None) -> MonotonicCounterUint:
         return MonotonicCounterUint(self.new_id(name, tags), self._writer)
 
-    def monotonic_counter_uint_with_meter_id(self, meter_id: MeterId) -> MonotonicCounterUint:
+    def monotonic_counter_uint_with_id(self, meter_id: MeterId) -> MonotonicCounterUint:
         return MonotonicCounterUint(meter_id, self._writer)
 
     def pct_distribution_summary(self, name: str, tags: Optional[dict] = None) -> PercentileDistributionSummary:
         return PercentileDistributionSummary(self.new_id(name, tags), self._writer)
 
-    def pct_distribution_summary_with_meter_id(self, meter_id: MeterId) -> PercentileDistributionSummary:
+    def pct_distribution_summary_with_id(self, meter_id: MeterId) -> PercentileDistributionSummary:
         return PercentileDistributionSummary(meter_id, self._writer)
 
     def pct_timer(self, name: str, tags: Optional[dict] = None) -> PercentileTimer:
         return PercentileTimer(self.new_id(name, tags), self._writer)
 
-    def pct_timer_with_meter_id(self, meter_id: MeterId) -> PercentileTimer:
+    def pct_timer_with_id(self, meter_id: MeterId) -> PercentileTimer:
         return PercentileTimer(meter_id, self._writer)
 
     def timer(self, name: str, tags: Optional[dict] = None) -> Timer:
         return Timer(self.new_id(name, tags), self._writer)
 
-    def timer_with_meter_id(self, meter_id: MeterId) -> Timer:
+    def timer_with_id(self, meter_id: MeterId) -> Timer:
         return Timer(meter_id, self._writer)
