@@ -9,7 +9,7 @@ class NoopWriter(Writer):
         self._logger.info("initialize NoopWriter")
 
     def write(self, line: str) -> None:
-        pass
+        self._logger.debug("write line=%s", line)
 
     def close(self) -> None:
         pass
