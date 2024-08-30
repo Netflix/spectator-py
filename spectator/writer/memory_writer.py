@@ -7,7 +7,7 @@ class MemoryWriter(Writer):
 
     def __init__(self) -> None:
         super().__init__()
-        self._logger.info("initialize MemoryWriter")
+        self._logger.debug("initialize MemoryWriter")
         self._messages = []
 
     def write(self, line: str) -> None:

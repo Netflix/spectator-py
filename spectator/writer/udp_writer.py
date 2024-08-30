@@ -10,7 +10,7 @@ class UdpWriter(Writer):
 
     def __init__(self, location: str, address: Tuple[str, int]) -> None:
         super().__init__()
-        self._logger.info("initialize UdpWriter to %s", location)
+        self._logger.debug("initialize UdpWriter to %s", location)
         self._address = address
 
         try:
