@@ -8,7 +8,7 @@ class FileWriter(Writer):
 
     def __init__(self, location: str, file: TextIO) -> None:
         super().__init__()
-        self._logger.info("initialize FileWriter to %s", location)
+        self._logger.debug("initialize FileWriter to %s", location)
         self._file = file
 
     def write(self, line: str) -> None:

@@ -23,13 +23,13 @@ class Registry:
         self._config = config
         self._logger = logging.getLogger(__name__)
         self._writer = new_writer(config.location)
-        self._logger.info("Create Registry with extra_common_tags=%s", config.extra_common_tags)
+        self._logger.debug("Create Registry with extra_common_tags=%s", config.extra_common_tags)
 
     def writer(self) -> WriterUnion:
         return self._writer
 
     def close(self) -> None:
-        self._logger.info("Close Registry Writer")
+        self._logger.debug("Close Registry Writer")
         try:
             self._writer.close()
         except IOError:

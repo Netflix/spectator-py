@@ -6,7 +6,7 @@ class NoopWriter(Writer):
 
     def __init__(self) -> None:
         super().__init__()
-        self._logger.info("initialize NoopWriter")
+        self._logger.debug("initialize NoopWriter")
 
     def write(self, line: str) -> None:
         self._logger.debug("write line=%s", line)
