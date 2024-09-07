@@ -1,5 +1,6 @@
 import os
 import unittest
+from typing import Dict
 
 from spectator.common_tags import tags_from_env_vars
 
@@ -7,19 +8,19 @@ from spectator.common_tags import tags_from_env_vars
 class CommonTagsTest(unittest.TestCase):
 
     @staticmethod
-    def all_expected_tags():
+    def all_expected_tags() -> Dict[str, str]:
         return {
             "nf.container": "main",
             "nf.process": "python",
         }
 
     @staticmethod
-    def setup_environment():
+    def setup_environment() -> None:
         os.environ["NETFLIX_PROCESS_NAME"] = "python"
         os.environ["TITUS_CONTAINER_NAME"] = "main"
 
     @staticmethod
-    def clear_environment():
+    def clear_environment() -> None:
         keys = ["NETFLIX_PROCESS_NAME", "TITUS_CONTAINER_NAME"]
 
         for key in keys:
