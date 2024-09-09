@@ -30,21 +30,21 @@ class MeterIdTest(unittest.TestCase):
 
     def test_invalid_tags(self):
         expected_messages = [
-            "WARNING:spectator.meter.meter_id:Id(name=foo, tags={'k': ''}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags Id(name=foo, tags={})",
-            "WARNING:spectator.meter.meter_id:Id(name=bar, tags={'k': 1}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags Id(name=bar, tags={})",
-            "WARNING:spectator.meter.meter_id:Id(name=baz, tags={1: 'v'}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags Id(name=baz, tags={})",
-            "WARNING:spectator.meter.meter_id:Id(name=quux, tags={'k': 'v', 1: 'v'}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags Id(name=quux, tags={'k': 'v'})",
+            "WARNING:spectator.meter.meter_id:MeterId(name=foo, tags={'k': ''}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags MeterId(name=foo, tags={})",
+            "WARNING:spectator.meter.meter_id:MeterId(name=bar, tags={'k': 1}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags MeterId(name=bar, tags={})",
+            "WARNING:spectator.meter.meter_id:MeterId(name=baz, tags={1: 'v'}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags MeterId(name=baz, tags={})",
+            "WARNING:spectator.meter.meter_id:MeterId(name=quux, tags={'k': 'v', 1: 'v'}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags MeterId(name=quux, tags={'k': 'v'})",
         ]
 
         with self.assertLogs("spectator.meter.meter_id", level='INFO') as logs:
             id1 = MeterId("foo", {"k": ""})
-            self.assertEqual("Id(name=foo, tags={})", str(id1))
+            self.assertEqual("MeterId(name=foo, tags={})", str(id1))
             id2 = MeterId("bar", {"k": 1})
-            self.assertEqual("Id(name=bar, tags={})", str(id2))
+            self.assertEqual("MeterId(name=bar, tags={})", str(id2))
             id3 = MeterId("baz", {1: "v"})
-            self.assertEqual("Id(name=baz, tags={})", str(id3))
+            self.assertEqual("MeterId(name=baz, tags={})", str(id3))
             id4 = MeterId("quux", {"k": "v", 1: "v"})
-            self.assertEqual("Id(name=quux, tags={'k': 'v'})", str(id4))
+            self.assertEqual("MeterId(name=quux, tags={'k': 'v'})", str(id4))
 
         self.assertEqual(expected_messages, logs.output)
 
@@ -70,13 +70,13 @@ class MeterIdTest(unittest.TestCase):
 
     def test_str(self):
         id1 = MeterId("foo")
-        self.assertEqual("Id(name=foo, tags={})", str(id1))
+        self.assertEqual("MeterId(name=foo, tags={})", str(id1))
 
         id2 = MeterId("bar", {"a": "1"})
-        self.assertEqual("Id(name=bar, tags={'a': '1'})", str(id2))
+        self.assertEqual("MeterId(name=bar, tags={'a': '1'})", str(id2))
 
-        id3 = MeterId("bar", {"a": "1", "b": "2", "c": "3"})
-        self.assertEqual("Id(name=bar, tags={'a': '1', 'b': '2', 'c': '3'})", str(id3))
+        id3 = MeterId("baz", {"a": "1", "b": "2", "c": "3"})
+        self.assertEqual("MeterId(name=baz, tags={'a': '1', 'b': '2', 'c': '3'})", str(id3))
 
     def test_tags(self):
         id1 = MeterId("foo", {"a": "1"})
