@@ -24,8 +24,8 @@ class MeterId:
         valid_tags = validate_tags(tags)
 
         if valid_tags != tags:
-            msg = "Id(name=%s, tags=%s) is invalid due to tag keys or values which are not strings " \
-                  "or are zero-length strings; proceeding with truncated tags Id(name=%s, tags=%s)"
+            msg = "MeterId(name=%s, tags=%s) is invalid due to tag keys or values which are not strings " \
+                  "or are zero-length strings; proceeding with truncated tags MeterId(name=%s, tags=%s)"
             self._logger.warning(msg, self._name, tags, self._name, valid_tags)
 
         return valid_tags
@@ -70,4 +70,4 @@ class MeterId:
         return False
 
     def __str__(self) -> str:
-        return f"Id(name={self._name}, tags={self._tags})"
+        return f"MeterId(name={self._name}, tags={self._tags})"

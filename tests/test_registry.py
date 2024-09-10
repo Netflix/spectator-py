@@ -170,11 +170,11 @@ class RegistryTest(unittest.TestCase):
     def test_new_id(self):
         r1 = Registry(Config("memory"))
         id1 = r1.new_id("id")
-        self.assertEqual("Id(name=id, tags={})", str(id1))
+        self.assertEqual("MeterId(name=id, tags={})", str(id1))
 
         r2 = Registry(Config("memory", {"extra-tags": "foo"}))
         id2 = r2.new_id("id")
-        self.assertEqual("Id(name=id, tags={'extra-tags': 'foo'})", str(id2))
+        self.assertEqual("MeterId(name=id, tags={'extra-tags': 'foo'})", str(id2))
 
     def test_pct_distribution_summary(self):
         r = Registry(Config("memory"))
