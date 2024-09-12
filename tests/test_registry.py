@@ -1,8 +1,9 @@
+import ctypes
 import logging
 import unittest
 
-from spectator.registry import Registry
 from spectator.config import Config
+from spectator.registry import Registry
 from spectator.writer.memory_writer import MemoryWriter
 
 
@@ -74,8 +75,8 @@ class RegistryTest(unittest.TestCase):
         c.increment(2)
         self.assertEqual("c:counter,extra-tags=foo,my-tags=bar:2", r.writer().last_line())
 
-        r.counter("counter").increment(3)
-        self.assertEqual("c:counter,extra-tags=foo:3", r.writer().last_line())
+        r.counter("counter", {"my-tags": "bar"}).increment(3)
+        self.assertEqual("c:counter,extra-tags=foo,my-tags=bar:3", r.writer().last_line())
 
     def test_distribution_summary(self):
         r = Registry(Config("memory"))
@@ -166,6 +167,24 @@ class RegistryTest(unittest.TestCase):
 
         c.set(42)
         self.assertEqual("C:monotonic_counter,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+
+    def test_monotonic_counter_uint(self):
+        r = Registry(Config("memory"))
+
+        c = r.monotonic_counter_uint("monotonic_counter_uint")
+        self.assertTrue(r.writer().is_empty())
+
+        c.set(ctypes.c_uint64(42))
+        self.assertEqual("U:monotonic_counter_uint:42", r.writer().last_line())
+
+    def test_monotonic_counter_uint_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        c = r.monotonic_counter_uint_with_id(r.new_id("monotonic_counter_uint", {"my-tags": "bar"}))
+        self.assertTrue(r.writer().is_empty())
+
+        c.set(ctypes.c_uint64(42))
+        self.assertEqual("U:monotonic_counter_uint,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
 
     def test_new_id(self):
         r1 = Registry(Config("memory"))
