@@ -2,7 +2,7 @@ import threading
 import unittest
 from contextlib import closing
 
-from spectator.writer.new_writer import new_writer
+from spectator import new_writer
 from ..udp_server import UdpServer
 
 

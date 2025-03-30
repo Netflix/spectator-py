@@ -1,7 +1,7 @@
 import time
 import unittest
 
-from spectator.clock import Clock, SystemClock, ManualClock
+from spectator import Clock, SystemClock, ManualClock
 
 
 class ClockTest(unittest.TestCase):

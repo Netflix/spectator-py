@@ -4,7 +4,7 @@ import unittest
 from contextlib import closing, redirect_stderr, redirect_stdout
 from tempfile import TemporaryDirectory
 
-from spectator.writer.new_writer import new_writer
+from spectator import new_writer
 
 
 class FileWriterTest(unittest.TestCase):

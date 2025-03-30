@@ -1,6 +1,6 @@
 import unittest
 
-from spectator.writer.new_writer import new_writer
+from spectator import new_writer
 
 
 class NoopWriterTest(unittest.TestCase):

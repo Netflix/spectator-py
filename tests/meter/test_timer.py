@@ -1,8 +1,6 @@
 import unittest
 
-from spectator.meter.meter_id import MeterId
-from spectator.meter.timer import Timer
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import MemoryWriter, MeterId, Timer
 
 
 class TimerTest(unittest.TestCase):

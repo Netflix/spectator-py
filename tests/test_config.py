@@ -2,7 +2,7 @@ import os
 import unittest
 from typing import Dict, Optional
 
-from spectator.config import Config
+from spectator import Config
 
 
 class ConfigTest(unittest.TestCase):

@@ -1,8 +1,6 @@
 import unittest
 
-from spectator.meter.max_gauge import MaxGauge
-from spectator.meter.meter_id import MeterId
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import MaxGauge, MemoryWriter, MeterId
 
 
 class MaxGaugeTest(unittest.TestCase):

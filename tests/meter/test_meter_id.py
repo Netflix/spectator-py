@@ -1,6 +1,6 @@
 import unittest
 
-from spectator.meter.meter_id import MeterId
+from spectator import MeterId
 
 
 class MeterIdTest(unittest.TestCase):

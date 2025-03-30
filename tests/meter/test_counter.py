@@ -1,8 +1,6 @@
 import unittest
 
-from spectator.meter.counter import Counter
-from spectator.meter.meter_id import MeterId
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import Counter, MemoryWriter, MeterId
 
 
 class CounterTest(unittest.TestCase):

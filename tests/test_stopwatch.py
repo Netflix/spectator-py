@@ -1,9 +1,6 @@
 import unittest
 
-from spectator.config import Config
-from spectator.registry import Registry
-from spectator.clock import ManualClock
-from spectator.stopwatch import StopWatch
+from spectator import Config, ManualClock, Registry, StopWatch
 
 
 class StopwatchTest(unittest.TestCase):
