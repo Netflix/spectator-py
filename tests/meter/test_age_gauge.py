@@ -1,8 +1,6 @@
 import unittest
 
-from spectator.meter.age_gauge import AgeGauge
-from spectator.meter.meter_id import MeterId
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import AgeGauge, MemoryWriter, MeterId
 
 
 class AgeGaugeTest(unittest.TestCase):

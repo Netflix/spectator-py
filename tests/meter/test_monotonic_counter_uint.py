@@ -1,9 +1,7 @@
 import ctypes
 import unittest
 
-from spectator.meter.monotonic_counter_uint import MonotonicCounterUint
-from spectator.meter.meter_id import MeterId
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import MonotonicCounterUint, MemoryWriter, MeterId
 
 
 class MonotonicCounterUintTest(unittest.TestCase):

@@ -2,9 +2,7 @@ import ctypes
 import logging
 import unittest
 
-from spectator.config import Config
-from spectator.registry import Registry
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import Config, MemoryWriter, Registry
 
 
 class RegistryTest(unittest.TestCase):

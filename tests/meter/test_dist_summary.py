@@ -1,8 +1,6 @@
 import unittest
 
-from spectator.meter.dist_summary import DistributionSummary
-from spectator.meter.meter_id import MeterId
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import DistributionSummary, MemoryWriter, MeterId
 
 
 class DistributionSummaryTest(unittest.TestCase):

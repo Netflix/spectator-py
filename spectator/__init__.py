@@ -1,7 +1,9 @@
 from spectator.config import Config
 from spectator.registry import Registry
 
-from spectator.protocol_parser import parse_protocol_line
+from spectator.clock import Clock, SystemClock, ManualClock
+from spectator.protocol_parser import get_meter_class, parse_protocol_line
+from spectator.stopwatch import StopWatch
 
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId

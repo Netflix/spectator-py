@@ -1,9 +1,6 @@
 import unittest
 
-from spectator.meter.counter import Counter
-from spectator.meter.gauge import Gauge
-from spectator.meter.timer import Timer
-from spectator.protocol_parser import get_meter_class, parse_protocol_line
+from spectator import Counter, Gauge, Timer, get_meter_class, parse_protocol_line
 
 
 class ProtocolParserTest(unittest.TestCase):

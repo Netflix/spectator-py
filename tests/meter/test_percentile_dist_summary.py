@@ -1,8 +1,6 @@
 import unittest
 
-from spectator.meter.percentile_dist_summary import PercentileDistributionSummary
-from spectator.meter.meter_id import MeterId
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import MemoryWriter, MeterId, PercentileDistributionSummary
 
 
 class PercentileDistributionSummaryTest(unittest.TestCase):

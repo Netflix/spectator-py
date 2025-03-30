@@ -1,8 +1,6 @@
 import unittest
 
-from spectator.meter.meter_id import MeterId
-from spectator.meter.percentile_timer import PercentileTimer
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import MemoryWriter, MeterId, PercentileTimer
 
 
 class PercentileTimerTest(unittest.TestCase):

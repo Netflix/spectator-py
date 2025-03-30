@@ -1,8 +1,6 @@
 import unittest
 
-from spectator.meter.gauge import Gauge
-from spectator.meter.meter_id import MeterId
-from spectator.writer.memory_writer import MemoryWriter
+from spectator import Gauge, MemoryWriter, MeterId
 
 
 class GaugeTest(unittest.TestCase):
