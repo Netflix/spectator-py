@@ -4,8 +4,8 @@ from typing import Tuple
 
 class UdpServer:
 
-    def __init__(self, address: Tuple[str, int] = ("127.0.0.1", 0)):
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    def __init__(self, address: Tuple[str, int] = ("127.0.0.1", 0)) -> None:
+        self._sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self._sock.bind(address)
 
     def address(self) -> str:
