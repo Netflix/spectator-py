@@ -6,6 +6,7 @@ from spectator.writer.file_writer import FileWriter
 from spectator.writer.memory_writer import MemoryWriter
 from spectator.writer.noop_writer import NoopWriter
 from spectator.writer.udp_writer import UdpWriter
+from spectator.writer.unix_writer import UnixWriter
 
 WriterUnion = Union[FileWriter, MemoryWriter, NoopWriter, UdpWriter]
 
@@ -15,7 +16,8 @@ def is_valid_output_location(location: str) -> bool:
         return False
     return location in ["none", "memory", "stdout", "stderr", "udp", "unix"] or \
         location.startswith("file://") or \
-        location.startswith("udp://")
+        location.startswith("udp://") or \
+        location.startswith("unix://")
 
 
 def new_writer(location: str) -> WriterUnion:
@@ -37,9 +39,8 @@ def new_writer(location: str) -> WriterUnion:
         writer = UdpWriter(location, address)
     elif location == "unix":
         # default unix domain socket for spectatord
-        location = "file:///run/spectatord/spectatord.unix"
-        file = open(urlparse(location).path, "a", encoding="utf-8")
-        writer = FileWriter(location, file)
+        location = "unix:///run/spectatord/spectatord.unix"
+        writer = UnixWriter(urlparse(location).path)
     elif location.startswith("file://"):
         file = open(urlparse(location).path, "a", encoding="utf-8")
         writer = FileWriter(location, file)
@@ -47,6 +48,8 @@ def new_writer(location: str) -> WriterUnion:
         parsed = urlparse(location)
         address = (parsed.hostname, parsed.port)
         writer = UdpWriter(location, address)
+    elif location.startswith("unix://"):
+        writer = UnixWriter(urlparse(location).path)
     else:
         raise ValueError(f"unsupported Writer location: {location}")
 
