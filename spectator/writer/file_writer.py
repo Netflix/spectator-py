@@ -3,8 +3,8 @@ from typing import TextIO
 
 
 class FileWriter(Writer):
-    """Writer that outputs data to a TextIO instance, which can be stdout, stderr, a unix domain
-    socket, or a regular file."""
+    """Writer that outputs data to a TextIO instance, which can be stdout, stderr,
+    or a regular file."""
 
     def __init__(self, location: str, file: TextIO) -> None:
         super().__init__()
