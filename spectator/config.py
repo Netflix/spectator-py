@@ -18,8 +18,9 @@ class Config:
       * `stdout` - Write metrics to standard output.
       * `udp`    - Write metrics to the default spectatord UDP port. This is the default value.
       * `unix`   - Write metrics to the default spectatord Unix Domain Socket. Useful for high-volume scenarios.
-      * `file:///path/to/file` - Write metrics to a file or a Unix Domain Socket.
-      * `udp://host:port`      - Write metrics to a UDP socket.
+      * `file:///path/to/file` - Write metrics to a file.
+      * `udp://host:port`      - Write metrics to a UDP port.
+      * `unix:///path/to/file` - Write metrics to a Unix Domain Socket.
 
     The output location can be overridden by configuring an environment variable SPECTATOR_OUTPUT_LOCATION
     with one of the values listed above. Overriding the output location may be useful for integration testing.
