@@ -1,3 +1,5 @@
+from typing import Optional
+
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import new_writer, WriterUnion
@@ -12,7 +14,10 @@ class PercentileTimer(Meter):
     with a worst-case of up to 300X that of a standard Timer. Be diligent about any additional
     dimensions added to Percentile Timers and ensure that they have a small bounded cardinality."""
 
-    def __init__(self, meter_id: MeterId, writer: WriterUnion = new_writer("none")) -> None:
+    def __init__(self, meter_id: MeterId, writer: Optional[WriterUnion] = None) -> None:
+        if writer is None:
+            writer = new_writer("none")
+
         super().__init__(meter_id, writer, "T")
 
     def record(self, seconds: float) -> None:

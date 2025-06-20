@@ -8,7 +8,7 @@ from spectator.writer.new_writer import is_valid_output_location
 class Config:
     """Create a new configuration with the provided location and extra common tags. All fields are
     optional. The extra common tags are added to every metric, on top of the common tags provided
-    by spectatord.
+    by `spectatord`.
 
     Possible values for `location` are:
 
@@ -22,15 +22,29 @@ class Config:
       * `udp://host:port`      - Write metrics to a UDP port.
       * `unix:///path/to/file` - Write metrics to a Unix Domain Socket.
 
-    The output location can be overridden by configuring an environment variable SPECTATOR_OUTPUT_LOCATION
+    The output location can be overridden by configuring an environment variable `SPECTATOR_OUTPUT_LOCATION`
     with one of the values listed above. Overriding the output location may be useful for integration testing.
+
+    The `buffer_size` is used to configure an optional `LineBuffer`, which caches protocol lines locally, before
+    flushing them to `spectatord`. Flushes occur under two conditions: (1) the buffer size is exceeded, or (2)
+    five seconds has elapsed. The buffer is available for the `SocketWriter` (udp and unix), where performance
+    matters most, and it can increase the maximum RPS of communication to `spectatord` from ~80K to 150K (1.8X).
+    The `LineBuffer` is disabled by default (with size zero), to ensure that the default operation of the library
+    works under most circumstances. Under single-threaded performance testing, a 2KB buffer is a good configuration.
+
+    When the `LineBuffer` is enabled, a background thread is started which will flush metrics every five seconds,
+    which means that some care should be exercised when a custom Registry with buffering is instantiated in pre-fork
+    environments.
     """
 
-    def __init__(self, location: str = "udp", extra_common_tags: Optional[Dict[str, str]] = None) -> None:
+    def __init__(self, location: str = "udp",
+                 extra_common_tags: Optional[Dict[str, str]] = None,
+                 buffer_size: int = 0) -> None:
+        self.location = self.calculate_location(location)
         if extra_common_tags is None:
             extra_common_tags = {}
         self.extra_common_tags = self.calculate_extra_common_tags(extra_common_tags)
-        self.location = self.calculate_location(location)
+        self.buffer_size = buffer_size
 
     @staticmethod
     def calculate_extra_common_tags(common_tags: Dict[str, str]) -> Dict[str, str]:

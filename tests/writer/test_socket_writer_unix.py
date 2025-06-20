@@ -5,9 +5,9 @@ from spectator import new_writer
 from ..unix_server import UnixServer
 
 
-class UnixWriterTest(unittest.TestCase):
+class SocketWriterUnixTest(unittest.TestCase):
 
-    def test_unix(self) -> None:
+    def test_socket_writer_unix(self) -> None:
         with closing(UnixServer()) as server:
             with closing(new_writer(server.address())) as w:
                 w.write("foo")

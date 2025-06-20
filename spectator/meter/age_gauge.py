@@ -1,3 +1,5 @@
+from typing import Optional
+
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import new_writer, WriterUnion
@@ -10,7 +12,10 @@ class AgeGauge(Meter):
     as the SpectatorD process runs. This meter type makes it easy to implement the Time Since
     Last Success alerting pattern."""
 
-    def __init__(self, meter_id: MeterId, writer: WriterUnion = new_writer("none")) -> None:
+    def __init__(self, meter_id: MeterId, writer: Optional[WriterUnion] = None) -> None:
+        if writer is None:
+            writer = new_writer("none")
+
         super().__init__(meter_id, writer, "A")
 
     def now(self) -> None:
