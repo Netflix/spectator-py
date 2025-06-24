@@ -11,12 +11,16 @@ class Gauge(Meter):
     this duration of time. An optional ttl_seconds may be set to control the lifespan of these
     values. SpectatorD enforces a minimum TTL of 5 seconds."""
 
-    def __init__(self, meter_id: MeterId, writer: WriterUnion = new_writer("none"),
+    def __init__(self, meter_id: MeterId, writer: Optional[WriterUnion] = None,
                  ttl_seconds: Optional[int] = None) -> None:
+        if writer is None:
+            writer = new_writer("none")
+
         if ttl_seconds is None:
             meter_type_symbol = "g"
         else:
             meter_type_symbol = f"g,{ttl_seconds}"
+
         super().__init__(meter_id, writer, meter_type_symbol)
 
     def set(self, value: float) -> None:

@@ -1,14 +1,11 @@
-import sys
 from typing import Union
-from urllib.parse import urlparse
 
 from spectator.writer.file_writer import FileWriter
 from spectator.writer.memory_writer import MemoryWriter
 from spectator.writer.noop_writer import NoopWriter
-from spectator.writer.udp_writer import UdpWriter
-from spectator.writer.unix_writer import UnixWriter
+from spectator.writer.socket_writer import SocketWriter
 
-WriterUnion = Union[FileWriter, MemoryWriter, NoopWriter, UdpWriter]
+WriterUnion = Union[FileWriter, MemoryWriter, NoopWriter, SocketWriter]
 
 
 def is_valid_output_location(location: str) -> bool:
@@ -20,36 +17,29 @@ def is_valid_output_location(location: str) -> bool:
         location.startswith("unix://")
 
 
-def new_writer(location: str) -> WriterUnion:
+def new_writer(location: str, buffer_size: int = 0, is_global: bool = False) -> WriterUnion:
     """Create a new Writer based on an output location."""
 
     if location == "none":
         writer = NoopWriter()
     elif location == "memory":
         writer = MemoryWriter()
-    elif location == "stderr":
-        writer = FileWriter(location, sys.stderr)
-    elif location == "stdout":
-        writer = FileWriter(location, sys.stdout)
+    elif location in ("stderr", "stdout"):
+        writer = FileWriter(location)
     elif location == "udp":
         # default udp port for spectatord
         location = "udp://127.0.0.1:1234"
-        parsed = urlparse(location)
-        address = (parsed.hostname, parsed.port)
-        writer = UdpWriter(location, address)
+        writer = SocketWriter(location, buffer_size, is_global)
     elif location == "unix":
         # default unix domain socket for spectatord
         location = "unix:///run/spectatord/spectatord.unix"
-        writer = UnixWriter(urlparse(location).path)
+        writer = SocketWriter(location, buffer_size)
     elif location.startswith("file://"):
-        file = open(urlparse(location).path, "a", encoding="utf-8")
-        writer = FileWriter(location, file)
+        writer = FileWriter(location)
     elif location.startswith("udp://"):
-        parsed = urlparse(location)
-        address = (parsed.hostname, parsed.port)
-        writer = UdpWriter(location, address)
+        writer = SocketWriter(location, buffer_size, is_global)
     elif location.startswith("unix://"):
-        writer = UnixWriter(urlparse(location).path)
+        writer = SocketWriter(location, buffer_size)
     else:
         raise ValueError(f"unsupported Writer location: {location}")
 

@@ -7,7 +7,7 @@ class NoopWriterTest(unittest.TestCase):
 
     def test_noop_writer_logs(self):
         expected_messages = [
-            "DEBUG:spectator.writer:initialize NoopWriter",
+            "INFO:spectator.writer:initialize NoopWriter",
             "DEBUG:spectator.writer:write line=c:counter:1"
         ]
 

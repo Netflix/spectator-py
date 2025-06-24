@@ -1,4 +1,5 @@
 from ctypes import c_uint64
+from typing import Optional
 
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
@@ -11,7 +12,10 @@ class MonotonicCounterUint(Meter):
     samples must be received in order for SpectatorD to calculate a delta value and report it to
     the backend."""
 
-    def __init__(self, meter_id: MeterId, writer: WriterUnion = new_writer("none")) -> None:
+    def __init__(self, meter_id: MeterId, writer: Optional[WriterUnion] = None) -> None:
+        if writer is None:
+            writer = new_writer("none")
+
         super().__init__(meter_id, writer, "U")
 
     def set(self, amount: c_uint64) -> None:

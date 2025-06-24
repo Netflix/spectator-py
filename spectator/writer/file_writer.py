@@ -1,15 +1,23 @@
+import sys
+from urllib.parse import urlparse
+
 from spectator.writer import Writer
-from typing import TextIO
 
 
 class FileWriter(Writer):
     """Writer that outputs data to a TextIO instance, which can be stdout, stderr,
     or a regular file."""
 
-    def __init__(self, location: str, file: TextIO) -> None:
+    def __init__(self, location: str) -> None:
         super().__init__()
-        self._logger.debug("initialize FileWriter to %s", location)
-        self._file = file
+        self._logger.info("initialize FileWriter to %s", location)
+
+        if location == "stderr":
+            self._file = sys.stderr
+        elif location == "stdout":
+            self._file = sys.stdout
+        else:
+            self._file = open(urlparse(location).path, "a", encoding="utf-8")
 
     def write(self, line: str) -> None:
         self._logger.debug("write line=%s", line)
