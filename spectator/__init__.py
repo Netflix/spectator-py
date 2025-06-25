@@ -49,4 +49,4 @@ from spectator.writer.socket_writer import SocketWriter
 # configuration, to supply a different output location or a set of extra common tags. Or, keep the
 # defaults and use the Registry as-is.
 
-GlobalRegistry = Registry(is_global=True)
+GlobalRegistry = Registry(Config(is_global=True))

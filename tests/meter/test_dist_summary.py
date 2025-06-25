@@ -1,10 +1,14 @@
 import unittest
 
-from spectator import DistributionSummary, MemoryWriter, MeterId
+from spectator import DistributionSummary, MemoryWriter, MeterId, NoopWriter
 
 
 class DistributionSummaryTest(unittest.TestCase):
     tid = MeterId("dist_summary")
+
+    def test_noop_writer(self):
+        d = DistributionSummary(self.tid)
+        self.assertTrue(isinstance(d.writer(), NoopWriter))
 
     def test_record(self):
         d = DistributionSummary(self.tid, MemoryWriter())

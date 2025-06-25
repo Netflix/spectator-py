@@ -1,6 +1,6 @@
 import unittest
 
-from spectator import new_writer
+from spectator import NoopWriter
 
 
 class NoopWriterTest(unittest.TestCase):
@@ -12,7 +12,7 @@ class NoopWriterTest(unittest.TestCase):
         ]
 
         with self.assertLogs("spectator.writer", level='DEBUG') as logs:
-            noop_writer = new_writer("none")
+            noop_writer = NoopWriter()
             noop_writer.write("c:counter:1")
             noop_writer.close()
 

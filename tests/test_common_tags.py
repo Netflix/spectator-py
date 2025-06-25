@@ -2,7 +2,7 @@ import os
 import unittest
 from typing import Dict
 
-from spectator.common_tags import tags_from_env_vars
+from spectator.common_tags import tags_from_env_vars, validate_tags
 
 
 class CommonTagsTest(unittest.TestCase):
@@ -59,3 +59,7 @@ class CommonTagsTest(unittest.TestCase):
         os.environ["TITUS_CONTAINER_NAME"] = "    main \t\t"
         self.assertEqual(self.all_expected_tags(), tags_from_env_vars())
         self.clear_environment()
+
+    def test_validate_tags(self):
+        self.assertEqual({}, validate_tags({"": "empty key", 1: "non-string key"}))
+        self.assertEqual({}, validate_tags({"empty val": "", "non-string val": 1}))

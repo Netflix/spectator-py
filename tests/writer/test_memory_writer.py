@@ -1,12 +1,12 @@
 import unittest
 
-from spectator import new_writer
+from spectator import MemoryWriter
 
 
 class MemoryWriterTest(unittest.TestCase):
 
     def test_all_methods(self):
-        memory_writer = new_writer("memory")
+        memory_writer = MemoryWriter()
         self.assertTrue(memory_writer.is_empty())
 
         memory_writer.write("c:counter:1")

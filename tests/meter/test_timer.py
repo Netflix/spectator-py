@@ -1,10 +1,14 @@
 import unittest
 
-from spectator import MemoryWriter, MeterId, Timer
+from spectator import MemoryWriter, MeterId, NoopWriter, Timer
 
 
 class TimerTest(unittest.TestCase):
     tid = MeterId("timer")
+
+    def test_noop_writer(self):
+        t = Timer(self.tid)
+        self.assertTrue(isinstance(t.writer(), NoopWriter))
 
     def test_record(self):
         t = Timer(self.tid, MemoryWriter())
