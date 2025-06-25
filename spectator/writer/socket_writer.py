@@ -4,6 +4,7 @@ import time
 from ipaddress import ip_address, IPv6Address
 from urllib.parse import urlparse
 
+from spectator.config import Config
 from spectator.writer import Writer
 from spectator.writer.line_buffer import LineBuffer
 
@@ -11,22 +12,24 @@ from spectator.writer.line_buffer import LineBuffer
 class SocketWriter(Writer):
     """Writer that outputs data to either a UDP socket or a Unix Domain socket."""
 
-    def __init__(self, location: str, buffer_size: int = 0, is_global: bool = False) -> None:
+    def __init__(self, config: Config) -> None:
         super().__init__()
 
-        if is_global:
-            self._logger.debug("initialize GlobalRegistry SocketWriter to %s (buffer_size=%s)", location, buffer_size)
+        if config.is_global:
+            self._logger.debug("initialize GlobalRegistry SocketWriter to %s (buffer_size=%s)",
+                               config.location, config.buffer_size)
         else:
-            self._logger.info("initialize SocketWriter to %s (buffer_size=%s)", location, buffer_size)
+            self._logger.info("initialize SocketWriter to %s (buffer_size=%s)",
+                              config.location, config.buffer_size)
 
-        self._buffer = LineBuffer(buffer_size) if buffer_size > 0 else None
+        self._buffer = LineBuffer(config.buffer_size) if config.buffer_size > 0 else None
         self._lock = threading.Lock()
         self._sock = None
 
-        if "udp" in location:
-            self._init_udp(location)
+        if "udp" in config.location:
+            self._init_udp(config.location)
         else:
-            self._init_unix(location)
+            self._init_unix(config.location)
 
         if self._buffer is not None:
             self._thread = threading.Thread(target=self._background_flush, daemon=True)

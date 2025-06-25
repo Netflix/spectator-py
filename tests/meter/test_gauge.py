@@ -1,10 +1,14 @@
 import unittest
 
-from spectator import Gauge, MemoryWriter, MeterId
+from spectator import Gauge, MemoryWriter, MeterId, NoopWriter
 
 
 class GaugeTest(unittest.TestCase):
     tid = MeterId("gauge")
+
+    def test_noop_writer(self):
+        g = Gauge(self.tid)
+        self.assertTrue(isinstance(g.writer(), NoopWriter))
 
     def test_set(self):
         g = Gauge(self.tid, MemoryWriter())

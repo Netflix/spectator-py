@@ -102,3 +102,8 @@ class MeterIdTest(unittest.TestCase):
         self.assertNotEqual(id1, id2)
         self.assertEqual({}, id1.tags())
         self.assertEqual({"a": "1", "b": "2"}, id2.tags())
+
+    def test_empty_with_tags_returns_same_object(self):
+        id1 = MeterId("foo")
+        id2 = id1.with_tags({})
+        self.assertEqual(id1, id2)

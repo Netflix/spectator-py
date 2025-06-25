@@ -1,10 +1,14 @@
 import unittest
 
-from spectator import MemoryWriter, MeterId, PercentileDistributionSummary
+from spectator import MemoryWriter, MeterId, NoopWriter, PercentileDistributionSummary
 
 
 class PercentileDistributionSummaryTest(unittest.TestCase):
     tid = MeterId("percentile_dist_summary")
+
+    def test_noop_writer(self):
+        d = PercentileDistributionSummary(self.tid)
+        self.assertTrue(isinstance(d.writer(), NoopWriter))
 
     def test_record(self):
         d = PercentileDistributionSummary(self.tid, writer=MemoryWriter())

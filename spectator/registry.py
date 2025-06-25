@@ -19,16 +19,15 @@ from spectator.writer.new_writer import new_writer, WriterUnion
 class Registry:
     """Registry is the main entry point for interacting with the Spectator library."""
 
-    def __init__(self, config: Config = Config(), is_global: bool = False) -> None:
+    def __init__(self, config: Config = Config()) -> None:
         self._logger = logging.getLogger(__name__)
-        if is_global:
-            self._logger.debug("Create GlobalRegistry with extra_common_tags=%s buffer_size=%s",
-                               config.extra_common_tags, config.buffer_size)
-        else:
-            self._logger.info("Create Registry with extra_common_tags=%s buffer_size=%s",
-                              config.extra_common_tags, config.buffer_size)
         self._config = config
-        self._writer = new_writer(config.location, config.buffer_size, is_global)
+        if config.is_global:
+            self._logger.debug("Create GlobalRegistry with extra_common_tags=%s",config.extra_common_tags)
+        else:
+            self._logger.info("Create Registry with extra_common_tags=%s",config.extra_common_tags)
+
+        self._writer = new_writer(config)
 
     def writer(self) -> WriterUnion:
         return self._writer

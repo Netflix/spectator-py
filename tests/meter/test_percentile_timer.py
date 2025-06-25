@@ -1,10 +1,14 @@
 import unittest
 
-from spectator import MemoryWriter, MeterId, PercentileTimer
+from spectator import MemoryWriter, MeterId, NoopWriter, PercentileTimer
 
 
 class PercentileTimerTest(unittest.TestCase):
     tid = MeterId("percentile_timer")
+
+    def test_noop_writer(self):
+        t = PercentileTimer(self.tid)
+        self.assertTrue(isinstance(t.writer(), NoopWriter))
 
     def test_record(self):
         t = PercentileTimer(self.tid, MemoryWriter())

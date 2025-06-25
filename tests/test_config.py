@@ -33,6 +33,19 @@ class ConfigTest(unittest.TestCase):
     def get_location(location: Optional[str]) -> str:
         return Config(location).location
 
+    def test_is_valid_output_location(self):
+        config = Config()
+        self.assertTrue(config.is_valid_output_location("none"))
+        self.assertTrue(config.is_valid_output_location("memory"))
+        self.assertTrue(config.is_valid_output_location("stdout"))
+        self.assertTrue(config.is_valid_output_location("stderr"))
+        self.assertTrue(config.is_valid_output_location("udp"))
+        self.assertTrue(config.is_valid_output_location("unix"))
+        self.assertTrue(config.is_valid_output_location("file://testfile.txt"))
+        self.assertTrue(config.is_valid_output_location("udp://localhost:1234"))
+        self.assertTrue(config.is_valid_output_location("unix:///tmp/socket.sock"))
+        self.assertFalse(config.is_valid_output_location("invalid"))
+
     def test_default_config(self):
         self.setup_environment()
         config = Config()
@@ -44,6 +57,11 @@ class ConfigTest(unittest.TestCase):
         os.environ["SPECTATOR_OUTPUT_LOCATION"] = "memory"
         config = Config()
         self.assertEqual("memory", config.location)
+        self.clear_environment()
+
+    def test_invalid_env_location_override(self):
+        os.environ["SPECTATOR_OUTPUT_LOCATION"] = "invalid"
+        self.assertRaises(ValueError, Config)
         self.clear_environment()
 
     def test_extra_common_tags(self):

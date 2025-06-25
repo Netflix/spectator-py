@@ -1,10 +1,14 @@
 import unittest
 
-from spectator import Counter, MemoryWriter, MeterId
+from spectator import Counter, MemoryWriter, MeterId, NoopWriter
 
 
 class CounterTest(unittest.TestCase):
     tid = MeterId("counter")
+
+    def test_noop_writer(self):
+        c = Counter(self.tid)
+        self.assertTrue(isinstance(c.writer(), NoopWriter))
 
     def test_increment(self):
         c = Counter(self.tid, MemoryWriter())

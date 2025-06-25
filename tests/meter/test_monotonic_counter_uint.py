@@ -1,11 +1,15 @@
 import ctypes
 import unittest
 
-from spectator import MonotonicCounterUint, MemoryWriter, MeterId
+from spectator import MonotonicCounterUint, MemoryWriter, MeterId, NoopWriter
 
 
 class MonotonicCounterUintTest(unittest.TestCase):
     tid = MeterId("monotonic_counter_uint")
+
+    def test_noop_writer(self):
+        c = MonotonicCounterUint(self.tid)
+        self.assertTrue(isinstance(c.writer(), NoopWriter))
 
     def test_set(self):
         c = MonotonicCounterUint(self.tid, writer=MemoryWriter())
