@@ -1,6 +1,6 @@
-from typing import Tuple, Type
+from abc import ABCMeta
+from typing import Optional, Tuple
 
-from spectator.meter import Meter
 from spectator.meter.age_gauge import AgeGauge
 from spectator.meter.counter import Counter
 from spectator.meter.dist_summary import DistributionSummary
@@ -28,20 +28,20 @@ _METER_CLASSES = {
 }
 
 
-def get_meter_class(symbol: str) -> Type[Meter]:
+def get_meter_class(symbol: str) -> Optional[ABCMeta]:
     return _METER_CLASSES.get(symbol)
 
 
 def parse_protocol_line(line: str) -> Tuple[str, MeterId, str]:
     """Parse a SpectatorD protocol line into component parts. Utility exposed for testing."""
-    symbol, id, value = line.split(":")
+    symbol, meter_id, value = line.split(":")
     # remove optional parts, such as gauge ttls
     symbol = symbol.split(",")[0]
-    id = id.split(",")
-    name = id[0]
+    meter_id_parts = meter_id.split(",")
+    name = meter_id_parts[0]
 
     tags = {}
-    for tag in id[1:]:
+    for tag in meter_id_parts[1:]:
         k, v = tag.split("=")
         tags[k] = v
 

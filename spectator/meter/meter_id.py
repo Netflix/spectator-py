@@ -34,6 +34,9 @@ class MeterId:
         return self.INVALID_CHARS.sub("_", s)
 
     def _to_spectatord_id(self, name: str, tags: Optional[Dict[str, str]]) -> str:
+        if tags is None:
+            tags = {}
+
         result = self._replace_invalid_chars(name)
 
         for k, v in sorted(tags.items()):

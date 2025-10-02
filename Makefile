@@ -15,7 +15,7 @@ help:
 
 ## all: clean test lint check-manifest
 .PHONY: all
-all: clean test lint check-manifest
+all: clean test lint typecheck check-manifest
 
 ## setup-venv: create new virtualenv with dev dependencies
 .PHONY: setup-venv
@@ -55,21 +55,6 @@ else
 	pytest --cov=spectator tests
 endif
 
-## coverage: produce a coverage report
-.PHONY: coverage
-coverage: .coverage
-ifeq ($(SYSTEM), Darwin)
-	$(ACTIVATE) coverage report -m
-	@echo
-	$(ACTIVATE) coverage html
-	@echo
-	open htmlcov/index.html
-else
-	coverage report -m
-	@echo
-	coverage html
-endif
-
 ## lint: run pylint on the project
 .PHONY: lint
 lint:
@@ -77,6 +62,15 @@ ifeq ($(SYSTEM), Darwin)
 	$(ACTIVATE) pylint --rcfile=.pylintrc-relaxed spectator tests
 else
 	pylint --rcfile=.pylintrc-relaxed spectator tests
+endif
+
+## typecheck: run mypy on the project
+.PHONY: typecheck
+typecheck:
+ifeq ($(SYSTEM), Darwin)
+	$(ACTIVATE) mypy spectator tests
+else
+	mypy spectator tests
 endif
 
 ## check-manifest: validate the manifest file
@@ -90,6 +84,21 @@ else
 	check-manifest --ignore $(MANIFEST_IGNORE)
 	@echo
 	python setup.py check --metadata --strict
+endif
+
+## coverage: produce a coverage report
+.PHONY: coverage
+coverage: .coverage
+ifeq ($(SYSTEM), Darwin)
+	$(ACTIVATE) coverage report -m
+	@echo
+	$(ACTIVATE) coverage html
+	@echo
+	open htmlcov/index.html
+else
+	coverage report -m
+	@echo
+	coverage html
 endif
 
 # DEBUG: print out a a variable via `make print-FOO`

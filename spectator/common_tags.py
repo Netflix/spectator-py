@@ -17,7 +17,7 @@ def _add_non_empty(tags: Dict[str, str], tag: str, *env_vars: str) -> None:
 def tags_from_env_vars() -> Dict[str, str]:
     """Extract common infrastructure tags from the Netflix environment variables, which are
     specific to a process and thus cannot be managed by a shared SpectatorD instance."""
-    tags = {}
+    tags: Dict[str, str] = {}
     _add_non_empty(tags, "nf.container", "TITUS_CONTAINER_NAME")
     _add_non_empty(tags, "nf.process", "NETFLIX_PROCESS_NAME")
     return tags

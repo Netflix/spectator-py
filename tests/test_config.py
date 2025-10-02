@@ -1,6 +1,6 @@
 import os
 import unittest
-from typing import Dict, Optional
+from typing import Dict
 
 from spectator import Config
 
@@ -30,7 +30,7 @@ class ConfigTest(unittest.TestCase):
                 pass
 
     @staticmethod
-    def get_location(location: Optional[str]) -> str:
+    def get_location(location: str) -> str:
         return Config(location).location
 
     def test_is_valid_output_location(self):
