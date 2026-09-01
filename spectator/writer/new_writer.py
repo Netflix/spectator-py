@@ -13,7 +13,7 @@ def new_writer(config: Config) -> WriterUnion:
     """Create a new Writer based on an output location."""
 
     if config.location == "none":
-        writer: WriterUnion = NoopWriter()
+        writer: WriterUnion = NoopWriter(config)
     elif config.location == "memory":
         writer = MemoryWriter()
     elif config.location in ("stderr", "stdout"):
