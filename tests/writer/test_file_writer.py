@@ -3,6 +3,7 @@ import os
 import unittest
 from contextlib import closing, redirect_stderr, redirect_stdout
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from spectator import Config, FileWriter
 
@@ -30,11 +31,12 @@ class FileWriterTest(unittest.TestCase):
 
     def test_file_writer_close_leaves_std_streams_open(self):
         f = io.StringIO()
-        with redirect_stdout(f):
+        with redirect_stdout(f), patch.object(f, "flush") as flush:
             FileWriter(Config("stdout")).close()
         with redirect_stderr(f):
             FileWriter(Config("stderr")).close()
         self.assertFalse(f.closed)
+        flush.assert_called_once()
 
     def test_file_writer_stdout(self):
         f = io.StringIO()
