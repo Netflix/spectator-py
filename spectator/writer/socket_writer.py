@@ -31,7 +31,7 @@ class SocketWriter(Writer):
         self._lock = threading.Lock()
         self._sock: Optional[socket.socket] = None
 
-        if "udp" in config.location:
+        if config.location.startswith("udp://"):
             self._init_udp(config.location)
         else:
             self._init_unix(config.location)
