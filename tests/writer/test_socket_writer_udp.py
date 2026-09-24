@@ -21,3 +21,11 @@ class SocketWriterUdpTest(unittest.TestCase):
                 w.write("foo")
                 w.write("bar")
                 self.assertEqual("foo\nbar", server.read())
+
+    def test_udp_with_buffer_flushes_on_close(self) -> None:
+        with closing(UdpServer()) as server:
+            w = SocketWriter(Config(server.address(), buffer_size=1024))
+            w.write("foo")
+            w.write("bar")
+            w.close()
+            self.assertEqual("foo\nbar", server.read())
