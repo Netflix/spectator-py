@@ -14,3 +14,9 @@ class SocketWriterUnixTest(unittest.TestCase):
                 self.assertEqual("foo", server.read())
                 w.write("bar")
                 self.assertEqual("bar", server.read())
+
+    def test_socket_writer_unix_path_containing_udp(self) -> None:
+        with closing(UnixServer("/tmp/udp-spectatord-test")) as server:
+            with closing(SocketWriter(Config(server.address()))) as w:
+                w.write("foo")
+                self.assertEqual("foo", server.read())
