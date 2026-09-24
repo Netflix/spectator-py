@@ -28,6 +28,14 @@ class FileWriterTest(unittest.TestCase):
                 w.write("foo")
                 self.assertEqual("foo\n", f.getvalue())
 
+    def test_file_writer_close_leaves_std_streams_open(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            FileWriter(Config("stdout")).close()
+        with redirect_stderr(f):
+            FileWriter(Config("stderr")).close()
+        self.assertFalse(f.closed)
+
     def test_file_writer_stdout(self):
         f = io.StringIO()
         with redirect_stdout(f):

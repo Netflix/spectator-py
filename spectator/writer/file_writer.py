@@ -13,6 +13,7 @@ class FileWriter(Writer):
         super().__init__()
         self._logger.info("initialize FileWriter to %s", config.location)
 
+        self._owns_file = config.location not in ("stderr", "stdout")
         if config.location == "stderr":
             self._file = sys.stderr
         elif config.location == "stdout":
@@ -28,4 +29,6 @@ class FileWriter(Writer):
             self._logger.error("failed to write line=%s", line)
 
     def close(self) -> None:
-        self._file.close()
+        # stdout and stderr are not owned by this writer, so leave them open
+        if self._owns_file:
+            self._file.close()
