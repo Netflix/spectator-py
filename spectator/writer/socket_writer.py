@@ -110,4 +110,10 @@ class SocketWriter(Writer):
     def close(self) -> None:
         if self._sock is None:
             return
-        self._sock.close()
+        with self._lock:
+            if self._buffer is not None and len(self._buffer) > 0:
+                try:
+                    self._sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
+                except IOError:
+                    self._logger.error("failed to write buffer on close")
+            self._sock.close()

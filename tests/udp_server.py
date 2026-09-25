@@ -7,6 +7,7 @@ class UdpServer:
     def __init__(self, address: Tuple[str, int] = ("127.0.0.1", 0)) -> None:
         self._sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self._sock.bind(address)
+        self._sock.settimeout(5)
 
     def address(self) -> str:
         hostname, port = self._sock.getsockname()
