@@ -1,6 +1,6 @@
 import unittest
 
-from spectator import Counter, Gauge, Timer, get_meter_class, parse_protocol_line
+from spectator import Counter, DistinctCountSketch, Gauge, Timer, get_meter_class, parse_protocol_line
 
 
 class ProtocolParserTest(unittest.TestCase):
@@ -57,3 +57,12 @@ class ProtocolParserTest(unittest.TestCase):
         self.assertEqual("timer", id.name())
         self.assertEqual({}, id.tags())
         self.assertEqual("1", value)
+
+    def test_parse_distinct_count_sketch(self):
+        # The base64 value alphabet (A-Za-z0-9+/=) contains no ':', so the line splits cleanly.
+        symbol, id, value = parse_protocol_line("S:sketch,foo=bar:YQ==")
+        self.assertEqual("S", symbol)
+        self.assertEqual(DistinctCountSketch, get_meter_class(symbol))
+        self.assertEqual("sketch", id.name())
+        self.assertEqual({"foo": "bar"}, id.tags())
+        self.assertEqual("YQ==", value)

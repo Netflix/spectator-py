@@ -94,6 +94,24 @@ class RegistryTest(unittest.TestCase):
         d.record(42)
         self.assertEqual("d:distribution_summary,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
 
+    def test_distinct_count_sketch(self):
+        r = Registry(Config("memory"))
+
+        d = r.distinct_count_sketch("distinct_count_sketch")
+        self.assertTrue(r.writer().is_empty())
+
+        d.record("a")
+        self.assertEqual("S:distinct_count_sketch:YQ==", r.writer().last_line())
+
+    def test_distinct_count_sketch_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        d = r.distinct_count_sketch_with_id(r.new_id("distinct_count_sketch", {"my-tags": "bar"}))
+        self.assertTrue(r.writer().is_empty())
+
+        d.record("a")
+        self.assertEqual("S:distinct_count_sketch,extra-tags=foo,my-tags=bar:YQ==", r.writer().last_line())
+
     def test_gauge(self):
         r = Registry(Config("memory"))
 
