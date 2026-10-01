@@ -28,8 +28,11 @@ class SocketWriter(Writer):
                               config.location, config.buffer_size)
 
         self._buffer: Optional[LineBuffer] = LineBuffer(config.buffer_size) if config.buffer_size > 0 else None
-        self._lock = threading.Lock()
+        # reentrant, so that close() called from a signal handler cannot deadlock when the
+        # interrupted code on the same thread already holds the lock in _write_buffer
+        self._lock = threading.RLock()
         self._sock: Optional[socket.socket] = None
+        self._closed = False
 
         if config.location.startswith("udp://"):
             self._init_udp(config.location)
@@ -58,12 +61,14 @@ class SocketWriter(Writer):
         self._family = socket.AF_UNIX
 
     def _background_flush(self) -> None:
-        while True:
+        while not self._closed:
             time.sleep(5)
             if self._buffer is None or self._sock is None:
                 continue
             if len(self._buffer) > 0:
                 with self._lock:
+                    if self._sock is None:
+                        continue
                     try:
                         self._sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
                     except IOError:
@@ -72,10 +77,10 @@ class SocketWriter(Writer):
     def _acquire_socket(self) -> None:
         # lazily instantiate the socket, in a thread-safe manner. this is necessary, because
         # the legacy GlobalRegistry will configure a SocketWriter (udp) upon `import spectator`.
-        if self._sock is None:
+        if self._sock is None and not self._closed:
             try:
                 with self._lock:
-                    if self._sock is None:
+                    if self._sock is None and not self._closed:
                         self._sock = socket.socket(family=self._family, type=socket.SOCK_DGRAM)
             except Exception as e:
                 self._logger.error("exception during socket acquire: %s", e)
@@ -84,17 +89,21 @@ class SocketWriter(Writer):
         if self._buffer is None or self._sock is None:
             return
         with self._lock:
+            sock = self._sock
+            if sock is None:
+                return
             if self._buffer.append(line):
                 try:
-                    self._sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
+                    sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
                 except IOError:
                     self._logger.error("failed to write buffer, including line=%s", line)
 
     def _write_socket(self, line: str) -> None:
-        if self._sock is None:
+        sock = self._sock
+        if sock is None:
             return
         try:
-            self._sock.sendto(bytes(line, encoding="utf-8"), self._address)
+            sock.sendto(bytes(line, encoding="utf-8"), self._address)
         except IOError:
             self._logger.error("failed to write line=%s", line)
 
@@ -108,12 +117,15 @@ class SocketWriter(Writer):
             self._write_socket(line)
 
     def close(self) -> None:
-        if self._sock is None:
-            return
         with self._lock:
-            if self._buffer is not None and len(self._buffer) > 0:
-                try:
-                    self._sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
-                except IOError:
-                    self._logger.error("failed to write buffer on close")
-            self._sock.close()
+            self._closed = True
+            sock, self._sock = self._sock, None
+            if sock is None:
+                return
+            try:
+                if self._buffer is not None and len(self._buffer) > 0:
+                    sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
+            except IOError:
+                self._logger.error("failed to write buffer on close")
+            finally:
+                sock.close()
