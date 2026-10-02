@@ -4,11 +4,21 @@ import unittest
 from contextlib import closing, redirect_stderr, redirect_stdout
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+from urllib.parse import quote
 
 from spectator import Config, FileWriter
 
 
 class FileWriterTest(unittest.TestCase):
+
+    def test_file_writer_escaped_path(self):
+        with TemporaryDirectory() as tmpdir:
+            tmp_file = os.path.join(tmpdir, "metrics space #%25.txt")
+            with closing(FileWriter(Config(f"file://{quote(tmp_file)}"))) as writer:
+                writer.write("foo")
+            with open(tmp_file, encoding="utf-8") as source:
+                self.assertEqual("foo\n", source.read())
+            self.assertEqual(["metrics space #%25.txt"], os.listdir(tmpdir))
 
     def test_file_writer_custom(self):
         with TemporaryDirectory() as tmpdir:
