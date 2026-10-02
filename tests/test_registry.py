@@ -1,11 +1,32 @@
 import ctypes
 import logging
+import os
 import unittest
+from unittest.mock import patch
 
 from spectator import Config, MemoryWriter, Registry
 
 
 class RegistryTest(unittest.TestCase):
+
+    def test_default_config_reads_current_environment(self):
+        with patch.dict(os.environ, {"SPECTATOR_OUTPUT_LOCATION": "memory",
+                                     "NETFLIX_PROCESS_NAME": "worker"}):
+            registry = Registry()
+            self.addCleanup(registry.close)
+            self.assertIsInstance(registry.writer(), MemoryWriter)
+            self.assertEqual("worker", registry.new_id("requests").tags()["nf.process"])
+
+    def test_default_config_refreshes_between_registries(self):
+        with patch.dict(os.environ, {"SPECTATOR_OUTPUT_LOCATION": "memory",
+                                     "NETFLIX_PROCESS_NAME": "first"}):
+            first = Registry()
+            self.addCleanup(first.close)
+            os.environ["NETFLIX_PROCESS_NAME"] = "second"
+            second = Registry()
+            self.addCleanup(second.close)
+            self.assertEqual("first", first.new_id("requests").tags()["nf.process"])
+            self.assertEqual("second", second.new_id("requests").tags()["nf.process"])
 
     def test_close(self):
         r = Registry(Config("memory"))
