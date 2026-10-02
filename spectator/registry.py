@@ -19,7 +19,9 @@ from spectator.writer.new_writer import new_writer, WriterUnion
 class Registry:
     """Registry is the main entry point for interacting with the Spectator library."""
 
-    def __init__(self, config: Config = Config()) -> None:
+    def __init__(self, config: Optional[Config] = None) -> None:
+        if config is None:
+            config = Config()
         self._logger = logging.getLogger(__name__)
         self._config = config
         if config.is_global:
