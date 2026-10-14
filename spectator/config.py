@@ -9,6 +9,13 @@ class Config:
     optional. The extra common tags are added to every metric, on top of the common tags provided
     by `spectatord`.
 
+    The `nf.container` tag (from `NETFLIX_CONTAINER_NAME`, falling back to `TITUS_CONTAINER_NAME`) and
+    the `nf.process` tag (from `NETFLIX_PROCESS_NAME`) are read from the environment when the Config is
+    created, and they take precedence over the same keys in the extra common tags. The Configs used by
+    `Registry()` and `GlobalRegistry` are created when `spectator` is imported, so set these variables
+    before that import, ideally in the process environment before it starts; changing `os.environ`
+    after the import has no effect on them.
+
     Possible values for `location` are:
 
       * `none`   - Configure a no-op writer that does nothing. Can be used to disable metrics collection.
