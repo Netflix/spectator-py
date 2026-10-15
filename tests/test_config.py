@@ -21,13 +21,19 @@ class ConfigTest(unittest.TestCase):
 
     @staticmethod
     def clear_environment() -> None:
-        keys = ["NETFLIX_PROCESS_NAME", "SPECTATOR_OUTPUT_LOCATION", "TITUS_CONTAINER_NAME"]
+        keys = ["NETFLIX_CONTAINER_NAME", "NETFLIX_PROCESS_NAME", "SPECTATOR_OUTPUT_LOCATION", "TITUS_CONTAINER_NAME"]
 
         for key in keys:
             try:
                 del os.environ[key]
             except KeyError:
                 pass
+
+    def setUp(self) -> None:
+        self.clear_environment()
+
+    def tearDown(self) -> None:
+        self.clear_environment()
 
     @staticmethod
     def get_location(location: str) -> str:
@@ -69,6 +75,13 @@ class ConfigTest(unittest.TestCase):
         config = Config(extra_common_tags={"extra-tag": "foo"})
         self.assertEqual("udp", config.location)
         self.assertEqual({"extra-tag": "foo", "nf.container": "main", "nf.process": "python"}, config.extra_common_tags)
+        self.clear_environment()
+
+    def test_env_tags_override_extra_common_tags(self):
+        self.setup_environment()
+        os.environ["NETFLIX_CONTAINER_NAME"] = "app"
+        config = Config(extra_common_tags={"nf.container": "passed-in", "nf.process": "passed-in"})
+        self.assertEqual({"nf.container": "app", "nf.process": "python"}, config.extra_common_tags)
         self.clear_environment()
 
     def test_valid_output_locations(self):
