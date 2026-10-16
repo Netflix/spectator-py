@@ -14,7 +14,7 @@ class LineBufferTest(unittest.TestCase):
         self.assertFalse(should_flush)
 
         should_flush = buffer.append("e")
-        self.assertEqual(5, len(buffer))
+        self.assertEqual(6, len(buffer))
         self.assertTrue(should_flush)
 
         self.assertEqual("abcd\ne", buffer.flush())
@@ -26,3 +26,29 @@ class LineBufferTest(unittest.TestCase):
 
         self.assertEqual("abcdefghij", buffer.flush())
         self.assertEqual(0, len(buffer))
+
+    def test_flush_threshold_includes_newline_separators(self):
+        buffer = LineBuffer(7)
+        self.assertFalse(buffer.append("abc"))
+        self.assertTrue(buffer.append("def"))
+        self.assertEqual(7, len(buffer))
+        self.assertEqual("abc\ndef", buffer.flush())
+
+    def test_size_matches_utf8_payload(self):
+        buffer = LineBuffer(6)
+        self.assertFalse(buffer.append("é"))
+        self.assertEqual(2, len(buffer))
+        self.assertTrue(buffer.append("€"))
+        self.assertEqual(6, len(buffer))
+        payload = buffer.flush()
+        self.assertEqual(6, len(payload.encode("utf-8")))
+        self.assertEqual(0, len(buffer))
+        self.assertFalse(buffer.append("abc"))
+        self.assertEqual(3, len(buffer))
+
+    def test_empty_lines_include_separators(self):
+        buffer = LineBuffer(1)
+        self.assertFalse(buffer.append(""))
+        self.assertTrue(buffer.append(""))
+        self.assertEqual(1, len(buffer))
+        self.assertEqual("\n", buffer.flush())
