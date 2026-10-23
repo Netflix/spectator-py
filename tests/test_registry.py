@@ -1,11 +1,32 @@
 import ctypes
 import logging
+import os
 import unittest
+from unittest.mock import patch
 
 from spectator import Config, MemoryWriter, Registry
 
 
 class RegistryTest(unittest.TestCase):
+
+    def test_default_config_reads_current_environment(self):
+        with patch.dict(os.environ, {"SPECTATOR_OUTPUT_LOCATION": "memory",
+                                     "NETFLIX_PROCESS_NAME": "worker"}):
+            registry = Registry()
+            self.addCleanup(registry.close)
+            self.assertIsInstance(registry.writer(), MemoryWriter)
+            self.assertEqual("worker", registry.new_id("requests").tags()["nf.process"])
+
+    def test_default_config_refreshes_between_registries(self):
+        with patch.dict(os.environ, {"SPECTATOR_OUTPUT_LOCATION": "memory",
+                                     "NETFLIX_PROCESS_NAME": "first"}):
+            first = Registry()
+            self.addCleanup(first.close)
+            os.environ["NETFLIX_PROCESS_NAME"] = "second"
+            second = Registry()
+            self.addCleanup(second.close)
+            self.assertEqual("first", first.new_id("requests").tags()["nf.process"])
+            self.assertEqual("second", second.new_id("requests").tags()["nf.process"])
 
     def test_close(self):
         r = Registry(Config("memory"))
@@ -93,6 +114,24 @@ class RegistryTest(unittest.TestCase):
 
         d.record(42)
         self.assertEqual("d:distribution_summary,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+
+    def test_distinct_count_sketch(self):
+        r = Registry(Config("memory"))
+
+        d = r.distinct_count_sketch("distinct_count_sketch")
+        self.assertTrue(r.writer().is_empty())
+
+        d.record("a")
+        self.assertEqual("S:distinct_count_sketch:YQ==", r.writer().last_line())
+
+    def test_distinct_count_sketch_with_id(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        d = r.distinct_count_sketch_with_id(r.new_id("distinct_count_sketch", {"my-tags": "bar"}))
+        self.assertTrue(r.writer().is_empty())
+
+        d.record("a")
+        self.assertEqual("S:distinct_count_sketch,extra-tags=foo,my-tags=bar:YQ==", r.writer().last_line())
 
     def test_gauge(self):
         r = Registry(Config("memory"))

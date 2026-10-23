@@ -14,7 +14,7 @@ class LineBuffer:
 
     def append(self, line: str) -> bool:
         """Return value indicates whether the buffer should be flushed."""
-        line_size = len(line.encode("utf-8"))
+        line_size = len(line) if line.isascii() else len(line.encode("utf-8"))
         if self._lines:
             self._size += 1  # Newline inserted between lines by flush().
         self._lines.append(line)

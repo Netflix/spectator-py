@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 from spectator.meter.age_gauge import AgeGauge
 from spectator.meter.counter import Counter
 from spectator.meter.dist_summary import DistributionSummary
+from spectator.meter.distinct_count_sketch import DistinctCountSketch
 from spectator.meter.gauge import Gauge
 from spectator.meter.max_gauge import MaxGauge
 from spectator.meter.meter_id import MeterId
@@ -23,6 +24,7 @@ _METER_CLASSES = {
     'C': MonotonicCounter,
     'U': MonotonicCounterUint,
     'D': PercentileDistributionSummary,
+    'S': DistinctCountSketch,
     'T': PercentileTimer,
     't': Timer,
 }

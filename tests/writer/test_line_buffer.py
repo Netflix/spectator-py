@@ -52,3 +52,13 @@ class LineBufferTest(unittest.TestCase):
         self.assertTrue(buffer.append(""))
         self.assertEqual(1, len(buffer))
         self.assertEqual("\n", buffer.flush())
+
+    def test_invalid_utf8_leaves_buffer_unchanged(self):
+        buffer = LineBuffer(10)
+        self.assertFalse(buffer.append("foo"))
+        with self.assertRaises(UnicodeEncodeError):
+            buffer.append("\ud800")
+        self.assertEqual(3, len(buffer))
+        self.assertFalse(buffer.append("bar"))
+        self.assertEqual(7, len(buffer))
+        self.assertEqual("foo\nbar", buffer.flush())

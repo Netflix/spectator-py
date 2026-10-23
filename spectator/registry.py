@@ -5,6 +5,7 @@ from spectator.config import Config
 from spectator.meter.age_gauge import AgeGauge
 from spectator.meter.counter import Counter
 from spectator.meter.dist_summary import DistributionSummary
+from spectator.meter.distinct_count_sketch import DistinctCountSketch
 from spectator.meter.gauge import Gauge
 from spectator.meter.max_gauge import MaxGauge
 from spectator.meter.meter_id import MeterId
@@ -19,7 +20,9 @@ from spectator.writer.new_writer import new_writer, WriterUnion
 class Registry:
     """Registry is the main entry point for interacting with the Spectator library."""
 
-    def __init__(self, config: Config = Config()) -> None:
+    def __init__(self, config: Optional[Config] = None) -> None:
+        if config is None:
+            config = Config()
         self._logger = logging.getLogger(__name__)
         self._config = config
         if config.is_global:
@@ -69,6 +72,12 @@ class Registry:
 
     def distribution_summary_with_id(self, meter_id: MeterId) -> DistributionSummary:
         return DistributionSummary(meter_id, self._writer)
+
+    def distinct_count_sketch(self, name: str, tags: Optional[dict] = None) -> DistinctCountSketch:
+        return DistinctCountSketch(self.new_id(name, tags), self._writer)
+
+    def distinct_count_sketch_with_id(self, meter_id: MeterId) -> DistinctCountSketch:
+        return DistinctCountSketch(meter_id, self._writer)
 
     def gauge(self, name: str, tags: Optional[dict] = None, ttl_seconds: Optional[int] = None) -> Gauge:
         return Gauge(self.new_id(name, tags), self._writer, ttl_seconds)
