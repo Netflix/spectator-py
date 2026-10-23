@@ -1,5 +1,5 @@
 import sys
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from spectator.config import Config
 from spectator.writer import Writer
@@ -20,7 +20,7 @@ class FileWriter(Writer):
             self._file = sys.stdout
             self._owns_file = False
         else:
-            self._file = open(urlparse(config.location).path, "a", encoding="utf-8")
+            self._file = open(unquote(urlparse(config.location).path), "a", encoding="utf-8")
             self._owns_file = True
 
     def write(self, line: str) -> None:
