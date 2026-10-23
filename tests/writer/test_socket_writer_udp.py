@@ -1,6 +1,7 @@
 import threading
 import unittest
 from contextlib import closing
+from unittest.mock import patch
 
 from spectator import Config, SocketWriter
 from ..udp_server import UdpServer
@@ -34,10 +35,15 @@ class SocketWriterUdpTest(unittest.TestCase):
     def test_udp_close_closes_socket_on_encode_error(self) -> None:
         with closing(UdpServer()) as server:
             w = SocketWriter(Config(server.address(), buffer_size=1024))
-            w.write("\ud800")
+            w.write("foo")
             sock = w._sock  # pylint: disable=protected-access
             assert sock is not None
-            self.assertRaises(UnicodeEncodeError, w.close)
+            # Invalid text is now rejected by write(); simulate an encoding failure
+            # during close to retain coverage of the socket cleanup guarantee.
+            buffer = w._buffer  # pylint: disable=protected-access
+            assert buffer is not None
+            with patch.object(buffer, "flush", return_value="\ud800"):
+                self.assertRaises(UnicodeEncodeError, w.close)
             self.assertEqual(-1, sock.fileno())
             w.write("foo")
             self.assertIsNone(w._sock)  # pylint: disable=protected-access
