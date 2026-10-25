@@ -3,7 +3,7 @@ import threading
 import time
 from ipaddress import ip_address, IPv6Address
 from typing import Optional, Tuple, TypeAlias, Union
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from spectator.config import Config
 from spectator.writer import Writer
@@ -57,8 +57,8 @@ class SocketWriter(Writer):
             self._family = socket.AF_INET
 
     def _init_unix(self, location: str):
-        self._address = urlparse(location).path
-        self._family = socket.AF_UNIX
+        self._address = unquote(urlparse(location).path)
+        self._family = getattr(socket, "AF_UNIX", socket.AF_INET)
 
     def _background_flush(self) -> None:
         while not self._closed:
@@ -81,6 +81,9 @@ class SocketWriter(Writer):
             try:
                 with self._lock:
                     if self._sock is None and not self._closed:
+                        if self._family is None:
+                            self._logger.error("AF_UNIX socket family is not supported on this platform")
+                            return
                         self._sock = socket.socket(family=self._family, type=socket.SOCK_DGRAM)
             except Exception as e:
                 self._logger.error("exception during socket acquire: %s", e)
