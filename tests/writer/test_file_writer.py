@@ -54,3 +54,10 @@ class FileWriterTest(unittest.TestCase):
             with closing(FileWriter(Config("stdout"))) as w:
                 w.write("foo")
                 self.assertEqual("foo\n", f.getvalue())
+
+    def test_file_writer_writes_each_line_in_one_call(self):
+        f = io.StringIO()
+        with redirect_stdout(f), patch.object(f, "write", wraps=f.write) as write:
+            with closing(FileWriter(Config("stdout"))) as w:
+                w.write("foo")
+        write.assert_called_once_with("foo\n")

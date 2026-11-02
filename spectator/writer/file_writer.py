@@ -26,7 +26,8 @@ class FileWriter(Writer):
     def write(self, line: str) -> None:
         self._logger.debug("write line=%s", line)
         try:
-            print(line, file=self._file)
+            # a single write call keeps lines from concurrent threads intact
+            self._file.write(line + "\n")
         except IOError:
             self._logger.error("failed to write line=%s", line)
 
