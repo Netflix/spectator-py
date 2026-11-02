@@ -27,7 +27,7 @@
 - CI (`.github/workflows/pr.yml`) runs `make install-deps && make all` on Python 3.10, 3.11, 3.12 and 3.13.
 - Baseline is clean: ruff check and ruff format report nothing, mypy reports no issues, all tests pass. Keep it that way.
 - All packaging and tool config (ruff, mypy, pytest, check-manifest) lives in `pyproject.toml`. There is no `setup.py` or `setup.cfg`.
-- Release: follow "Releasing" in `README.md`. Merge the `version` bump in `pyproject.toml` before creating the `vX.Y.Z` release. A tag on a commit with a different version fails to publish; this is why 1.2.0 never reached PyPI. Never create `v*` tags or releases unless you are releasing.
+- Release: follow "Releasing" in `README.md`. Merge the `version` bump in `pyproject.toml` before creating the `vX.Y.Z` release. A tag on a commit with a different version fails to publish; this is why 1.2.0 never reached PyPI. `release.yml` now checks the tag against the `pyproject.toml` version (PEP 440, so `v1.3.0-rc.1` matches `1.3.0rc1`) before building. Never create `v*` tags or releases unless you are releasing.
 
 ## Architecture
 
