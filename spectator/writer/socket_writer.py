@@ -1,17 +1,17 @@
 import socket
 import threading
 import time
-from ipaddress import ip_address, IPv6Address
-from typing import Optional, Tuple, TypeAlias, Union
+from ipaddress import IPv6Address, ip_address
+from typing import TypeAlias
 from urllib.parse import urlparse
 
 from spectator.config import Config
 from spectator.writer import Writer
 from spectator.writer.line_buffer import LineBuffer
 
-InetFamily: TypeAlias = Tuple[Union[str, None], Union[int, None]]
+InetFamily: TypeAlias = tuple[str | None, int | None]
 UnixFamily: TypeAlias = str
-SocketAddress: TypeAlias = Union[InetFamily, UnixFamily]
+SocketAddress: TypeAlias = InetFamily | UnixFamily
 
 
 class SocketWriter(Writer):
@@ -21,17 +21,25 @@ class SocketWriter(Writer):
         super().__init__()
 
         if config.is_global:
-            self._logger.debug("initialize GlobalRegistry SocketWriter to %s (buffer_size=%s)",
-                               config.location, config.buffer_size)
+            self._logger.debug(
+                "initialize GlobalRegistry SocketWriter to %s (buffer_size=%s)",
+                config.location,
+                config.buffer_size,
+            )
         else:
-            self._logger.info("initialize SocketWriter to %s (buffer_size=%s)",
-                              config.location, config.buffer_size)
+            self._logger.info(
+                "initialize SocketWriter to %s (buffer_size=%s)",
+                config.location,
+                config.buffer_size,
+            )
 
-        self._buffer: Optional[LineBuffer] = LineBuffer(config.buffer_size) if config.buffer_size > 0 else None
+        self._buffer: LineBuffer | None = (
+            LineBuffer(config.buffer_size) if config.buffer_size > 0 else None
+        )
         # reentrant, so that close() called from a signal handler cannot deadlock when the
         # interrupted code on the same thread already holds the lock in _write_buffer
         self._lock = threading.RLock()
-        self._sock: Optional[socket.socket] = None
+        self._sock: socket.socket | None = None
         self._closed = False
 
         if config.location.startswith("udp://"):
@@ -48,7 +56,10 @@ class SocketWriter(Writer):
         parsed = urlparse(location)
         self._address: SocketAddress = (parsed.hostname, parsed.port)
         try:
-            if self._address[0] is not None and type(ip_address(self._address[0])) is IPv6Address:
+            if (
+                self._address[0] is not None
+                and type(ip_address(self._address[0])) is IPv6Address
+            ):
                 self._family = socket.AF_INET6
             else:
                 self._family = socket.AF_INET
@@ -70,9 +81,13 @@ class SocketWriter(Writer):
                     if self._sock is None:
                         continue
                     try:
-                        self._sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
-                    except IOError:
-                        self._logger.error("failed to write buffer from background flush")
+                        self._sock.sendto(
+                            bytes(self._buffer.flush(), encoding="utf-8"), self._address
+                        )
+                    except OSError:
+                        self._logger.error(
+                            "failed to write buffer from background flush"
+                        )
 
     def _acquire_socket(self) -> None:
         # lazily instantiate the socket, in a thread-safe manner. this is necessary, because
@@ -81,7 +96,9 @@ class SocketWriter(Writer):
             try:
                 with self._lock:
                     if self._sock is None and not self._closed:
-                        self._sock = socket.socket(family=self._family, type=socket.SOCK_DGRAM)
+                        self._sock = socket.socket(
+                            family=self._family, type=socket.SOCK_DGRAM
+                        )
             except Exception as e:
                 self._logger.error("exception during socket acquire: %s", e)
 
@@ -94,9 +111,13 @@ class SocketWriter(Writer):
                 return
             if self._buffer.append(line):
                 try:
-                    sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
-                except IOError:
-                    self._logger.error("failed to write buffer, including line=%s", line)
+                    sock.sendto(
+                        bytes(self._buffer.flush(), encoding="utf-8"), self._address
+                    )
+                except OSError:
+                    self._logger.error(
+                        "failed to write buffer, including line=%s", line
+                    )
 
     def _write_socket(self, line: str) -> None:
         sock = self._sock
@@ -104,7 +125,7 @@ class SocketWriter(Writer):
             return
         try:
             sock.sendto(bytes(line, encoding="utf-8"), self._address)
-        except IOError:
+        except OSError:
             self._logger.error("failed to write line=%s", line)
 
     def write(self, line: str) -> None:
@@ -124,8 +145,10 @@ class SocketWriter(Writer):
                 return
             try:
                 if self._buffer is not None and len(self._buffer) > 0:
-                    sock.sendto(bytes(self._buffer.flush(), encoding="utf-8"), self._address)
-            except IOError:
+                    sock.sendto(
+                        bytes(self._buffer.flush(), encoding="utf-8"), self._address
+                    )
+            except OSError:
                 self._logger.error("failed to write buffer on close")
             finally:
                 sock.close()

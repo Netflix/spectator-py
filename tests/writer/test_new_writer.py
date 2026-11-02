@@ -2,11 +2,17 @@ import os
 import unittest
 from tempfile import TemporaryDirectory
 
-from spectator import Config, new_writer, NoopWriter, MemoryWriter, FileWriter, SocketWriter
+from spectator import (
+    Config,
+    FileWriter,
+    MemoryWriter,
+    NoopWriter,
+    SocketWriter,
+    new_writer,
+)
 
 
 class NewWriterTest(unittest.TestCase):
-
     def test_none(self):
         w = new_writer(Config("none"))
         self.assertTrue(isinstance(w, NoopWriter))

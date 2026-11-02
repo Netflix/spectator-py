@@ -1,9 +1,7 @@
 import os
 
-from typing import Dict
 
-
-def _add_non_empty(tags: Dict[str, str], tag: str, *env_vars: str) -> None:
+def _add_non_empty(tags: dict[str, str], tag: str, *env_vars: str) -> None:
     for env_var in env_vars:
         value = os.environ.get(env_var)
         if value is None:
@@ -14,7 +12,7 @@ def _add_non_empty(tags: Dict[str, str], tag: str, *env_vars: str) -> None:
             break
 
 
-def tags_from_env_vars() -> Dict[str, str]:
+def tags_from_env_vars() -> dict[str, str]:
     """Extract common infrastructure tags from the Netflix environment variables, which are
     specific to a container or process and thus cannot be managed by a shared SpectatorD instance.
 
@@ -22,13 +20,15 @@ def tags_from_env_vars() -> Dict[str, str]:
       * `nf.process`   - From `NETFLIX_PROCESS_NAME`.
 
     Values are stripped of whitespace, and unset or blank variables are ignored."""
-    tags: Dict[str, str] = {}
-    _add_non_empty(tags, "nf.container", "NETFLIX_CONTAINER_NAME", "TITUS_CONTAINER_NAME")
+    tags: dict[str, str] = {}
+    _add_non_empty(
+        tags, "nf.container", "NETFLIX_CONTAINER_NAME", "TITUS_CONTAINER_NAME"
+    )
     _add_non_empty(tags, "nf.process", "NETFLIX_PROCESS_NAME")
     return tags
 
 
-def validate_tags(tags: Dict[str, str]) -> Dict[str, str]:
+def validate_tags(tags: dict[str, str]) -> dict[str, str]:
     valid_tags = {}
 
     for k, v in tags.items():

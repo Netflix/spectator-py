@@ -1,5 +1,3 @@
-from typing import Optional
-
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import WriterUnion
@@ -9,7 +7,7 @@ from spectator.writer.noop_writer import NoopWriter
 class Timer(Meter):
     """The value is the number of seconds that have elapsed for an event."""
 
-    def __init__(self, meter_id: MeterId, writer: Optional[WriterUnion] = None) -> None:
+    def __init__(self, meter_id: MeterId, writer: WriterUnion | None = None) -> None:
         if writer is None:
             writer = NoopWriter()
 

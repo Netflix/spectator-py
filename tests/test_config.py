@@ -1,14 +1,12 @@
 import os
 import unittest
-from typing import Dict
 
 from spectator import Config
 
 
 class ConfigTest(unittest.TestCase):
-
     @staticmethod
-    def all_expected_tags() -> Dict[str, str]:
+    def all_expected_tags() -> dict[str, str]:
         return {
             "nf.container": "main",
             "nf.process": "python",
@@ -21,13 +19,15 @@ class ConfigTest(unittest.TestCase):
 
     @staticmethod
     def clear_environment() -> None:
-        keys = ["NETFLIX_CONTAINER_NAME", "NETFLIX_PROCESS_NAME", "SPECTATOR_OUTPUT_LOCATION", "TITUS_CONTAINER_NAME"]
+        keys = [
+            "NETFLIX_CONTAINER_NAME",
+            "NETFLIX_PROCESS_NAME",
+            "SPECTATOR_OUTPUT_LOCATION",
+            "TITUS_CONTAINER_NAME",
+        ]
 
         for key in keys:
-            try:
-                del os.environ[key]
-            except KeyError:
-                pass
+            os.environ.pop(key, None)
 
     def setUp(self) -> None:
         self.clear_environment()
@@ -74,14 +74,21 @@ class ConfigTest(unittest.TestCase):
         self.setup_environment()
         config = Config(extra_common_tags={"extra-tag": "foo"})
         self.assertEqual("udp", config.location)
-        self.assertEqual({"extra-tag": "foo", "nf.container": "main", "nf.process": "python"}, config.extra_common_tags)
+        self.assertEqual(
+            {"extra-tag": "foo", "nf.container": "main", "nf.process": "python"},
+            config.extra_common_tags,
+        )
         self.clear_environment()
 
     def test_env_tags_override_extra_common_tags(self):
         self.setup_environment()
         os.environ["NETFLIX_CONTAINER_NAME"] = "app"
-        config = Config(extra_common_tags={"nf.container": "passed-in", "nf.process": "passed-in"})
-        self.assertEqual({"nf.container": "app", "nf.process": "python"}, config.extra_common_tags)
+        config = Config(
+            extra_common_tags={"nf.container": "passed-in", "nf.process": "passed-in"}
+        )
+        self.assertEqual(
+            {"nf.container": "app", "nf.process": "python"}, config.extra_common_tags
+        )
         self.clear_environment()
 
     def test_valid_output_locations(self):

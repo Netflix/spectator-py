@@ -38,12 +38,16 @@ class DistinctCountSketchTest(unittest.TestCase):
 
     def test_record_out_of_range_int_is_ignored(self):
         d = DistinctCountSketch(self.tid, MemoryWriter())
-        d.record(2 ** 70)  # does not fit in 64 bits; skipped rather than silently truncated
+        d.record(
+            2**70
+        )  # does not fit in 64 bits; skipped rather than silently truncated
         self.assertTrue(d.writer().is_empty())
 
     def test_record_bool_is_ignored(self):
         d = DistinctCountSketch(self.tid, MemoryWriter())
-        d.record(True)  # bool is excluded from the int path; skipped rather than recorded as 1
+        d.record(
+            True
+        )  # bool is excluded from the int path; skipped rather than recorded as 1
         self.assertTrue(d.writer().is_empty())
 
     def test_record_str_with_unpaired_surrogate(self):

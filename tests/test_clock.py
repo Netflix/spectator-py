@@ -1,7 +1,7 @@
 import time
 import unittest
 
-from spectator import Clock, SystemClock, ManualClock
+from spectator import Clock, ManualClock, SystemClock
 
 
 class ClockTest(unittest.TestCase):
@@ -18,14 +18,14 @@ class SystemClockTest(unittest.TestCase):
         start = c.wall_time()
         time.sleep(0.01)
         end = c.wall_time()
-        self.assertTrue(end > start, "{} > {}".format(end, start))
+        self.assertTrue(end > start, f"{end} > {start}")
 
     def test_monotonic_time(self):
         c = SystemClock()
         start = c.monotonic_time()
         time.sleep(0.01)
         end = c.monotonic_time()
-        self.assertTrue(end > start, "{} > {}".format(end, start))
+        self.assertTrue(end > start, f"{end} > {start}")
 
 
 class ManualClockTest(unittest.TestCase):

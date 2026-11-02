@@ -1,6 +1,8 @@
 .coverage
 .idea/
 .tox/
+build/
+dist/
 netflix_spectator_py.egg-info/
 __pycache__/
 venv/

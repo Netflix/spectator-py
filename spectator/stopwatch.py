@@ -1,5 +1,3 @@
-from typing import Union
-
 from spectator.clock import Clock, SystemClock
 from spectator.meter.percentile_timer import PercentileTimer
 from spectator.meter.timer import Timer
@@ -9,8 +7,10 @@ class StopWatch:
     """Context Manager that records the duration of a with-statement block in a Timer or
     PercentileTimer. It uses a custom Clock implementation to assist with unit testing."""
 
-    def __init__(self, timer: Union[PercentileTimer, Timer], clock: Clock = SystemClock()) -> None:
-        self._clock = clock
+    def __init__(
+        self, timer: PercentileTimer | Timer, clock: Clock | None = None
+    ) -> None:
+        self._clock = clock if clock is not None else SystemClock()
         self._timer = timer
 
     def __enter__(self) -> None:

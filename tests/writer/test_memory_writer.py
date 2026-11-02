@@ -4,7 +4,6 @@ from spectator import MemoryWriter
 
 
 class MemoryWriterTest(unittest.TestCase):
-
     def test_all_methods(self):
         memory_writer = MemoryWriter()
         self.assertTrue(memory_writer.is_empty())

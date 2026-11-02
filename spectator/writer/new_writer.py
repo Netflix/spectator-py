@@ -1,4 +1,4 @@
-from typing import Union
+from typing import TypeAlias
 
 from spectator.config import Config
 from spectator.writer.file_writer import FileWriter
@@ -6,7 +6,7 @@ from spectator.writer.memory_writer import MemoryWriter
 from spectator.writer.noop_writer import NoopWriter
 from spectator.writer.socket_writer import SocketWriter
 
-WriterUnion = Union[FileWriter, MemoryWriter, NoopWriter, SocketWriter]
+WriterUnion: TypeAlias = FileWriter | MemoryWriter | NoopWriter | SocketWriter
 
 
 def new_writer(config: Config) -> WriterUnion:
@@ -28,9 +28,7 @@ def new_writer(config: Config) -> WriterUnion:
         writer = SocketWriter(config)
     elif config.location.startswith("file://"):
         writer = FileWriter(config)
-    elif config.location.startswith("udp://"):
-        writer = SocketWriter(config)
-    elif config.location.startswith("unix://"):
+    elif config.location.startswith("udp://") or config.location.startswith("unix://"):
         writer = SocketWriter(config)
     else:
         raise ValueError(f"unsupported Writer location: {config.location}")

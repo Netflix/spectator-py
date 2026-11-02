@@ -4,7 +4,6 @@ from spectator import LineBuffer
 
 
 class LineBufferTest(unittest.TestCase):
-
     def test_all_methods(self):
         buffer = LineBuffer(5)
         self.assertEqual(0, len(buffer))

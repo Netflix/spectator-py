@@ -20,7 +20,9 @@ class FileWriter(Writer):
             self._file = sys.stdout
             self._owns_file = False
         else:
-            self._file = open(unquote(urlparse(config.location).path), "a", encoding="utf-8")
+            path = unquote(urlparse(config.location).path)
+            # the writer owns this file for its lifetime and closes it in close()
+            self._file = open(path, "a", encoding="utf-8")  # noqa: SIM115
             self._owns_file = True
 
     def write(self, line: str) -> None:
@@ -28,7 +30,7 @@ class FileWriter(Writer):
         try:
             # a single write call keeps lines from concurrent threads intact
             self._file.write(line + "\n")
-        except IOError:
+        except OSError:
             self._logger.error("failed to write line=%s", line)
 
     def close(self) -> None:

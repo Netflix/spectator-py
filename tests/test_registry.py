@@ -8,18 +8,21 @@ from spectator import Config, MemoryWriter, Registry
 
 
 class RegistryTest(unittest.TestCase):
-
     def test_default_config_reads_current_environment(self):
-        with patch.dict(os.environ, {"SPECTATOR_OUTPUT_LOCATION": "memory",
-                                     "NETFLIX_PROCESS_NAME": "worker"}):
+        with patch.dict(
+            os.environ,
+            {"SPECTATOR_OUTPUT_LOCATION": "memory", "NETFLIX_PROCESS_NAME": "worker"},
+        ):
             registry = Registry()
             self.addCleanup(registry.close)
             self.assertIsInstance(registry.writer(), MemoryWriter)
             self.assertEqual("worker", registry.new_id("requests").tags()["nf.process"])
 
     def test_default_config_refreshes_between_registries(self):
-        with patch.dict(os.environ, {"SPECTATOR_OUTPUT_LOCATION": "memory",
-                                     "NETFLIX_PROCESS_NAME": "first"}):
+        with patch.dict(
+            os.environ,
+            {"SPECTATOR_OUTPUT_LOCATION": "memory", "NETFLIX_PROCESS_NAME": "first"},
+        ):
             first = Registry()
             self.addCleanup(first.close)
             os.environ["NETFLIX_PROCESS_NAME"] = "second"
@@ -58,7 +61,9 @@ class RegistryTest(unittest.TestCase):
         self.assertTrue(r.writer().is_empty())
 
         g.set(0)
-        self.assertEqual("A:age_gauge,extra-tags=foo,my-tags=bar:0", r.writer().last_line())
+        self.assertEqual(
+            "A:age_gauge,extra-tags=foo,my-tags=bar:0", r.writer().last_line()
+        )
 
     def test_counter(self):
         r = Registry(Config("memory"))
@@ -89,13 +94,19 @@ class RegistryTest(unittest.TestCase):
         self.assertTrue(r.writer().is_empty())
 
         c.increment()
-        self.assertEqual("c:counter,extra-tags=foo,my-tags=bar:1", r.writer().last_line())
+        self.assertEqual(
+            "c:counter,extra-tags=foo,my-tags=bar:1", r.writer().last_line()
+        )
 
         c.increment(2)
-        self.assertEqual("c:counter,extra-tags=foo,my-tags=bar:2", r.writer().last_line())
+        self.assertEqual(
+            "c:counter,extra-tags=foo,my-tags=bar:2", r.writer().last_line()
+        )
 
         r.counter("counter", {"my-tags": "bar"}).increment(3)
-        self.assertEqual("c:counter,extra-tags=foo,my-tags=bar:3", r.writer().last_line())
+        self.assertEqual(
+            "c:counter,extra-tags=foo,my-tags=bar:3", r.writer().last_line()
+        )
 
     def test_distribution_summary(self):
         r = Registry(Config("memory"))
@@ -109,11 +120,16 @@ class RegistryTest(unittest.TestCase):
     def test_distribution_summary_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        d = r.distribution_summary_with_id(r.new_id("distribution_summary", {"my-tags": "bar"}))
+        d = r.distribution_summary_with_id(
+            r.new_id("distribution_summary", {"my-tags": "bar"})
+        )
         self.assertTrue(r.writer().is_empty())
 
         d.record(42)
-        self.assertEqual("d:distribution_summary,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "d:distribution_summary,extra-tags=foo,my-tags=bar:42",
+            r.writer().last_line(),
+        )
 
     def test_distinct_count_sketch(self):
         r = Registry(Config("memory"))
@@ -127,11 +143,16 @@ class RegistryTest(unittest.TestCase):
     def test_distinct_count_sketch_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        d = r.distinct_count_sketch_with_id(r.new_id("distinct_count_sketch", {"my-tags": "bar"}))
+        d = r.distinct_count_sketch_with_id(
+            r.new_id("distinct_count_sketch", {"my-tags": "bar"})
+        )
         self.assertTrue(r.writer().is_empty())
 
         d.record("a")
-        self.assertEqual("S:distinct_count_sketch,extra-tags=foo,my-tags=bar:YQ==", r.writer().last_line())
+        self.assertEqual(
+            "S:distinct_count_sketch,extra-tags=foo,my-tags=bar:YQ==",
+            r.writer().last_line(),
+        )
 
     def test_gauge(self):
         r = Registry(Config("memory"))
@@ -149,7 +170,9 @@ class RegistryTest(unittest.TestCase):
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
-        self.assertEqual("g:gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "g:gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line()
+        )
 
     def test_gauge_with_id_with_ttl_seconds(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
@@ -158,7 +181,9 @@ class RegistryTest(unittest.TestCase):
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
-        self.assertEqual("g,120:gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "g,120:gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line()
+        )
 
     def test_gauge_with_ttl_seconds(self):
         r = Registry(Config("memory"))
@@ -185,7 +210,9 @@ class RegistryTest(unittest.TestCase):
         self.assertTrue(r.writer().is_empty())
 
         g.set(42)
-        self.assertEqual("m:max_gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "m:max_gauge,extra-tags=foo,my-tags=bar:42", r.writer().last_line()
+        )
 
     def test_monotonic_counter(self):
         r = Registry(Config("memory"))
@@ -199,11 +226,15 @@ class RegistryTest(unittest.TestCase):
     def test_monotonic_counter_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        c = r.monotonic_counter_with_id(r.new_id("monotonic_counter", {"my-tags": "bar"}))
+        c = r.monotonic_counter_with_id(
+            r.new_id("monotonic_counter", {"my-tags": "bar"})
+        )
         self.assertTrue(r.writer().is_empty())
 
         c.set(42)
-        self.assertEqual("C:monotonic_counter,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "C:monotonic_counter,extra-tags=foo,my-tags=bar:42", r.writer().last_line()
+        )
 
     def test_monotonic_counter_uint(self):
         r = Registry(Config("memory"))
@@ -217,11 +248,16 @@ class RegistryTest(unittest.TestCase):
     def test_monotonic_counter_uint_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        c = r.monotonic_counter_uint_with_id(r.new_id("monotonic_counter_uint", {"my-tags": "bar"}))
+        c = r.monotonic_counter_uint_with_id(
+            r.new_id("monotonic_counter_uint", {"my-tags": "bar"})
+        )
         self.assertTrue(r.writer().is_empty())
 
         c.set(ctypes.c_uint64(42))
-        self.assertEqual("U:monotonic_counter_uint,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "U:monotonic_counter_uint,extra-tags=foo,my-tags=bar:42",
+            r.writer().last_line(),
+        )
 
     def test_new_id(self):
         r1 = Registry(Config("memory"))
@@ -244,11 +280,16 @@ class RegistryTest(unittest.TestCase):
     def test_pct_distribution_summary_with_id(self):
         r = Registry(Config("memory", {"extra-tags": "foo"}))
 
-        d = r.pct_distribution_summary_with_id(r.new_id("pct_distribution_summary", {"my-tags": "bar"}))
+        d = r.pct_distribution_summary_with_id(
+            r.new_id("pct_distribution_summary", {"my-tags": "bar"})
+        )
         self.assertTrue(r.writer().is_empty())
 
         d.record(42)
-        self.assertEqual("D:pct_distribution_summary,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "D:pct_distribution_summary,extra-tags=foo,my-tags=bar:42",
+            r.writer().last_line(),
+        )
 
     def test_pct_timer(self):
         r = Registry(Config("memory"))
@@ -266,7 +307,9 @@ class RegistryTest(unittest.TestCase):
         self.assertTrue(r.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("T:pct_timer,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "T:pct_timer,extra-tags=foo,my-tags=bar:42", r.writer().last_line()
+        )
 
     def test_timer(self):
         r = Registry(Config("memory"))
@@ -284,7 +327,9 @@ class RegistryTest(unittest.TestCase):
         self.assertTrue(r.writer().is_empty())
 
         t.record(42)
-        self.assertEqual("t:timer,extra-tags=foo,my-tags=bar:42", r.writer().last_line())
+        self.assertEqual(
+            "t:timer,extra-tags=foo,my-tags=bar:42", r.writer().last_line()
+        )
 
     def test_writer(self):
         r = Registry(Config("memory"))
@@ -299,7 +344,7 @@ class RegistryTest(unittest.TestCase):
             "DEBUG:spectator.writer:write line=c:counter:1",
         ]
 
-        with self.assertLogs("spectator.writer", level='DEBUG') as logs:
+        with self.assertLogs("spectator.writer", level="DEBUG") as logs:
             c = r.counter("counter")
             c.increment()
 
