@@ -5,15 +5,13 @@ VENV := venv
 ACTIVATE := . $(VENV)/bin/activate;
 DEACTIVATE := deactivate;
 
-MANIFEST_IGNORE := .pylintrc-relaxed,AGENTS.md,CLAUDE.md,Makefile,MANIFEST.in,OSSMETADATA,RELEASE_PROCESS.md,tests*,tests/**,tox.ini
-
 ## help: print this help message
 .PHONY: help
 help:
 	@echo 'Usage:'
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
 
-## all: clean test lint check-manifest
+## all: clean test lint typecheck check-manifest
 .PHONY: all
 all: clean test lint typecheck check-manifest
 
@@ -43,7 +41,7 @@ endif
 ## clean: cleanup the project
 .PHONY: clean
 clean:
-	rm -rf .coverage htmlcov netflix_spectator_py.egg-info
+	rm -rf .coverage build dist htmlcov netflix_spectator_py.egg-info
 	find spectator tests -name __pycache__ -prune -exec rm -rf {} \;
 
 ## test: run tests with coverage enabled
@@ -55,13 +53,26 @@ else
 	pytest --cov=spectator tests
 endif
 
-## lint: run pylint on the project
+## lint: run the ruff linter and check formatting
 .PHONY: lint
 lint:
 ifeq ($(SYSTEM), Darwin)
-	$(ACTIVATE) pylint --rcfile=.pylintrc-relaxed spectator tests
+	$(ACTIVATE) ruff check .
+	$(ACTIVATE) ruff format --check .
 else
-	pylint --rcfile=.pylintrc-relaxed spectator tests
+	ruff check .
+	ruff format --check .
+endif
+
+## format: apply ruff lint fixes and formatting
+.PHONY: format
+format:
+ifeq ($(SYSTEM), Darwin)
+	$(ACTIVATE) ruff check --fix .
+	$(ACTIVATE) ruff format .
+else
+	ruff check --fix .
+	ruff format .
 endif
 
 ## typecheck: run mypy on the project
@@ -73,17 +84,20 @@ else
 	mypy spectator tests
 endif
 
-## check-manifest: validate the manifest file
+## check-manifest: validate the manifest file and the built distributions
 .PHONY: check-manifest
 check-manifest:
+	rm -rf dist
 ifeq ($(SYSTEM), Darwin)
-	$(ACTIVATE) check-manifest --ignore $(MANIFEST_IGNORE)
+	$(ACTIVATE) check-manifest
 	@echo
-	$(ACTIVATE) python setup.py check --metadata --strict
+	$(ACTIVATE) python -m build --outdir dist .
+	$(ACTIVATE) twine check --strict dist/*
 else
-	check-manifest --ignore $(MANIFEST_IGNORE)
+	check-manifest
 	@echo
-	python setup.py check --metadata --strict
+	python -m build --outdir dist .
+	twine check --strict dist/*
 endif
 
 ## coverage: produce a coverage report

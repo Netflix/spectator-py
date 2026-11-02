@@ -13,9 +13,10 @@
 | Create venv + dev deps | `make setup-venv` (creates `./venv`, runs `pip install -e ".[dev]"`) |
 | Test + coverage | `make test` → `pytest --cov=spectator tests` |
 | Single test | `venv/bin/pytest tests/meter/test_counter.py::CounterTest::test_increment` |
-| Lint | `make lint` → `pylint --rcfile=.pylintrc-relaxed spectator tests` |
+| Lint + format check | `make lint` → `ruff check .` and `ruff format --check .` |
+| Auto-fix + format | `make format` → `ruff check --fix .` and `ruff format .` |
 | Type check | `make typecheck` → `mypy spectator tests` |
-| Packaging check | `make check-manifest` (check-manifest + `setup.py check --metadata --strict`) |
+| Packaging check | `make check-manifest` (check-manifest, `python -m build`, `twine check --strict dist/*`) |
 | Full CI gate | `make all` (clean, test, lint, typecheck, check-manifest) |
 | Coverage report | `make coverage` (opens `htmlcov/index.html` on macOS) |
 | Build dist | `python -m build --sdist --wheel --outdir dist/ .` |
@@ -24,8 +25,9 @@
 
 - On macOS, every make target sources `venv/bin/activate`. Run `make setup-venv` first or the targets fail. On Linux they use the ambient Python.
 - CI (`.github/workflows/pr.yml`) runs `make install-deps && make all` on Python 3.10, 3.11, 3.12 and 3.13.
-- Baseline is clean: pylint 10.00/10, mypy reports no issues, all tests pass. Keep it that way.
-- Release: bump `version` in `setup.cfg`, then push tag `vX.Y.Z` and `release.yml` publishes to PyPI. Never push `v*` tags unless you are releasing.
+- Baseline is clean: ruff check and ruff format report nothing, mypy reports no issues, all tests pass. Keep it that way.
+- All packaging and tool config (ruff, mypy, pytest, check-manifest) lives in `pyproject.toml`. There is no `setup.py` or `setup.cfg`.
+- Release: bump `version` in `pyproject.toml`, then push tag `vX.Y.Z` and `release.yml` publishes to PyPI. Never push `v*` tags unless you are releasing.
 
 ## Architecture
 
@@ -51,22 +53,24 @@ Data flow: `Registry.counter(name, tags)` → `MeterId` (+ extra common tags) �
 
 ## Code Style & Conventions
 
-- Python ≥ 3.10. Use the `typing` forms already in the code (`Optional`, `Dict`, `List`, `Union`, `TypeAlias`). No 3.11+ features (`typing.Self`, `except*`, `tomllib`).
-- Type-annotate every signature, including `-> None`. mypy checks `tests/` too. The package ships `py.typed`.
-- Runtime is stdlib-only (no `install_requires`). Never add a runtime dependency. Dev tools go in `setup.cfg` → `[options.extras_require] dev`.
+- Python ≥ 3.10. Use built-in generics and PEP 604 unions (`dict[str, str]`, `list[str]`, `X | None`), and `typing.TypeAlias` for aliases. Never use `Optional`, `Dict`, `List` or `Union`; ruff's `UP` rules reject them. No 3.11+ features (`typing.Self`, `except*`, `tomllib`, the `type` statement).
+- Formatting is `ruff format` (Black style, 88 columns). Run `make format` before committing and never hand-format. Long strings, comments and docstrings are allowed (E501 is off).
+- Add a `# noqa: <code>` only when the rule is genuinely wrong for that line. Existing ones: `B024` on `Clock`/`Meter`, `SIM115` on the `FileWriter` file handle.
+- Type-annotate every signature, including `-> None`. mypy checks `tests/` too, against Python 3.10. The package ships `py.typed`.
+- Runtime is stdlib-only (no `dependencies`). Never add a runtime dependency. Dev tools go in `pyproject.toml` → `[project.optional-dependencies] dev`.
 - Logging: `self._logger = logging.getLogger(__name__)`. Pass lazy `%s` args, never f-strings, to log calls. Log at info on construction, debug per write, error on I/O failure. GlobalRegistry paths (`config.is_global`) log at debug.
 - Build protocol lines with f-strings: `f"{self._meter_type_symbol}:{self._id.spectatord_id}:{value}"`.
-- Never raise from instrumentation calls (`increment`, `record`, `set`, `write`). Drop bad input, optionally with a `warning`. Writers catch `IOError` and log it. Only `Config` raises (`ValueError` on an invalid location).
-- Defaults: use `Optional[...] = None` and build the object inside the function. Never use mutable or object default args.
+- Never raise from instrumentation calls (`increment`, `record`, `set`, `write`). Drop bad input, optionally with a `warning`. Writers catch `OSError` and log it. Only `Config` raises (`ValueError` on an invalid location).
+- Defaults: use `X | None = None` and build the object inside the function. Never use mutable or object default args.
 - Registry pattern: each meter gets `<type>(name, tags=None)` and `<type>_with_id(meter_id)`.
-- Every meter class has a docstring explaining its Atlas semantics. pylint doesn't enforce this (`.pylintrc-relaxed`); keep doing it anyway.
+- Every meter class has a docstring explaining its Atlas semantics. ruff doesn't enforce this; keep doing it anyway.
 - Commit subjects are short and imperative with the PR number: `Fix LineBuffer payload byte accounting (#98)`.
 
 ### Adding a meter type
 1. `spectator/meter/<name>.py`: subclass `Meter`, default `writer` to `NoopWriter()`, pass the SpectatorD symbol to `super().__init__`.
 2. Add both factory methods to `Registry`.
 3. Register the symbol in `protocol_parser._METER_CLASSES`.
-4. Export it from `spectator/__init__.py`.
+4. Import it in `spectator/__init__.py` and add it to `__all__`.
 5. Add `tests/meter/test_<name>.py`, plus cases in `tests/test_registry.py` and `tests/test_protocol_parser.py`.
 
 ### Adding a writer / output location
@@ -78,7 +82,6 @@ Subclass `Writer`. Add it to `WriterUnion` and `new_writer`, add the location to
 - Socket tests: wrap `UdpServer()` (ephemeral port) or `UnixServer()` in `contextlib.closing`.
 - Env vars: use `patch.dict(os.environ, {...})`. Never leave the env mutated.
 - Time: use `ManualClock`, never `sleep`.
-- Private access in tests needs `# pylint: disable=protected-access`.
 - Every bug fix ships with a regression test.
 
 ## Critical Gotchas
@@ -104,7 +107,7 @@ Subclass `Writer`. Add it to `WriterUnion` and `new_writer`, add the location to
 - `LineBuffer` counts UTF-8 bytes plus the `\n` separators (#98). Never size it with `len(str)` for non-ASCII text.
 - `FileWriter.close()` only flushes stdout/stderr and must never close them (#94).
 - `MemoryWriter.close()` clears the captured lines, so assert before closing.
-- Writers catch only `IOError`. Anything else, such as a `UnicodeEncodeError` from lone surrogates, propagates to the caller.
+- Writers catch only `OSError`. Anything else, such as a `UnicodeEncodeError` from lone surrogates, propagates to the caller.
 
 ### Meter semantics (wire contract with SpectatorD)
 - The type symbols (`c C U g m A t T d D S`) and the `symbol:id:value` line format are a protocol contract. Changing them breaks ingestion.
@@ -120,7 +123,7 @@ Subclass `Writer`. Add it to `WriterUnion` and `new_writer`, add the location to
 - `tests/test_global_registry.py` binds UDP `127.0.0.1:1234`, the default SpectatorD port, so it fails if a local `spectatord` is running.
 
 ### Packaging & public API
-- `setup.cfg` lists packages explicitly (`spectator`, `spectator.meter`, `spectator.writer`). Add any new subpackage there or it will be missing from the wheel.
-- Add any non-`.py` file under `spectator/` to `MANIFEST.in` or `check-manifest` fails. New top-level repo-only files (docs, configs) go in `MANIFEST_IGNORE` in the `Makefile` instead.
-- Everything exported from `spectator/__init__.py` is public API, so renaming or removing a name is a breaking change. `GlobalRegistry` is deprecated but must keep working.
+- Packages are auto-discovered (`include = ["spectator*"]`). `py.typed` ships through `[tool.setuptools.package-data]`; a non-`.py` file needed at runtime must be added there too.
+- Add any non-`.py` file under `spectator/` to `MANIFEST.in` or `check-manifest` fails. New top-level repo-only files (docs, configs) go in `[tool.check-manifest] ignore` in `pyproject.toml` instead.
+- `__all__` in `spectator/__init__.py` defines the public API, so renaming or removing a name is a breaking change. `GlobalRegistry` is deprecated but must keep working.
 - Secrets: automated releases use the `PYPI_API_TOKEN` GitHub Actions secret, and manual releases use a maintainer's local `~/.pypirc` or twine credentials. Never commit `~/.pypirc`, tokens, `dist/` or `venv/`.

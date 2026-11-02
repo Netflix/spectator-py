@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netflix-spectator-py"
+version = "1.2.1"
+description = "Library for reporting metrics from Python applications to SpectatorD and the Netflix Atlas Timeseries Database."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Netflix Telemetry Engineering", email = "netflix-atlas@googlegroups.com" },
+]
+
+[project.urls]
+Homepage = "https://github.com/Netflix/spectator-py"
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "check-manifest",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "twine",
+]
+
+[tool.setuptools.packages.find]
+include = ["spectator*"]
+
+[tool.setuptools.package-data]
+spectator = ["py.typed"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific rules
+]
+# the formatter wraps code; long strings, comments and docstrings are allowed
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.check-manifest]
+ignore = [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "Makefile",
+    "MANIFEST.in",
+    "OSSMETADATA",
+    "RELEASE_PROCESS.md",
+    "tests*",
+    "tests/**",
+]

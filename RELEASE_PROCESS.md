@@ -2,7 +2,7 @@
 
 See [Publishing package distribution releases using GitHub Actions CI/CD workflows](https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/) for more details.
 
-1. Bump the version number in [setup.cfg](./setup.cfg).
+1. Bump the version number in [pyproject.toml](./pyproject.toml).
 
 1. Tag the repo and write release notes. The goal is for the [releases] page to be readable.
 
@@ -30,7 +30,7 @@ See [Publishing package distribution releases using GitHub Actions CI/CD workflo
 
     1. Install packaging tools.
 
-            pip3 install setuptools wheel twine
+            pip3 install build twine
 
     1. Configure [PyPI] username.
 
@@ -42,7 +42,7 @@ See [Publishing package distribution releases using GitHub Actions CI/CD workflo
             username: $PYPI_USERNAME
             EOF
 
-1. Bump the version number in [setup.cfg](./setup.cfg).
+1. Bump the version number in [pyproject.toml](./pyproject.toml).
 
 1. Tag the repo and write release notes. The goal is for the [releases] page to be readable.
 
@@ -69,7 +69,7 @@ package and upload it to [PyPI].
 
         rm -rf dist
         git checkout $TAG
-        python3 setup.py sdist bdist_wheel
+        python3 -m build
         twine check dist/*
         twine upload dist/*
 
