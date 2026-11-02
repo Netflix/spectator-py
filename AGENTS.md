@@ -55,6 +55,7 @@ Data flow: `Registry.counter(name, tags)` → `MeterId` (+ extra common tags) �
 
 - Python ≥ 3.10. Use built-in generics and PEP 604 unions (`dict[str, str]`, `list[str]`, `X | None`), and `typing.TypeAlias` for aliases. Never use `Optional`, `Dict`, `List` or `Union`; ruff's `UP` rules reject them. No 3.11+ features (`typing.Self`, `except*`, `tomllib`, the `type` statement).
 - Formatting is `ruff format` (Black style, 88 columns). Run `make format` before committing and never hand-format. Long strings, comments and docstrings are allowed (E501 is off).
+- ruff is pinned in `pyproject.toml` (`ruff==X.Y.Z`). To upgrade: bump the pin, run `make format`, commit any reformat on its own, and add that commit's full hash to `.git-blame-ignore-revs`. Never mix a reformat with other changes.
 - Add a `# noqa: <code>` only when the rule is genuinely wrong for that line. Existing ones: `B024` on `Clock`/`Meter`, `SIM115` on the `FileWriter` file handle.
 - Type-annotate every signature, including `-> None`. mypy checks `tests/` too, against Python 3.10. The package ships `py.typed`.
 - Runtime is stdlib-only (no `dependencies`). Never add a runtime dependency. Dev tools go in `pyproject.toml` → `[project.optional-dependencies] dev`.
