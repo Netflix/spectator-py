@@ -5,7 +5,7 @@ VENV := venv
 ACTIVATE := . $(VENV)/bin/activate;
 DEACTIVATE := deactivate;
 
-MANIFEST_IGNORE := .pylintrc-relaxed,Makefile,MANIFEST.in,OSSMETADATA,RELEASE_PROCESS.md,tests*,tests/**,tox.ini
+MANIFEST_IGNORE := .pylintrc-relaxed,AGENTS.md,CLAUDE.md,Makefile,MANIFEST.in,OSSMETADATA,RELEASE_PROCESS.md,tests*,tests/**,tox.ini
 
 ## help: print this help message
 .PHONY: help
