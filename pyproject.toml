@@ -62,7 +62,6 @@ ignore = [
     "Makefile",
     "MANIFEST.in",
     "OSSMETADATA",
-    "RELEASE_PROCESS.md",
     "tests*",
     "tests/**",
 ]
