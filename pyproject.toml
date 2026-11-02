@@ -24,7 +24,9 @@ dev = [
     "mypy",
     "pytest",
     "pytest-cov",
-    "ruff",
+    # pinned so that a new ruff release cannot change lint or format results in CI;
+    # upgrade deliberately, see AGENTS.md
+    "ruff==0.17.3",
     "twine",
 ]
 
@@ -57,6 +59,7 @@ testpaths = ["tests"]
 
 [tool.check-manifest]
 ignore = [
+    ".git-blame-ignore-revs",
     "AGENTS.md",
     "CLAUDE.md",
     "Makefile",
