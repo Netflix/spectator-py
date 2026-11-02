@@ -1,7 +1,7 @@
 import ctypes
 import unittest
 
-from spectator import MonotonicCounterUint, MemoryWriter, MeterId, NoopWriter
+from spectator import MemoryWriter, MeterId, MonotonicCounterUint, NoopWriter
 
 
 class MonotonicCounterUintTest(unittest.TestCase):
@@ -23,4 +23,6 @@ class MonotonicCounterUintTest(unittest.TestCase):
         self.assertTrue(c.writer().is_empty())
 
         c.set(ctypes.c_uint64(-1))
-        self.assertEqual("U:monotonic_counter_uint:18446744073709551615", c.writer().last_line())
+        self.assertEqual(
+            "U:monotonic_counter_uint:18446744073709551615", c.writer().last_line()
+        )

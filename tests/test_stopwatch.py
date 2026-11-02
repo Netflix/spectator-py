@@ -4,7 +4,6 @@ from spectator import Config, ManualClock, Registry, StopWatch
 
 
 class StopwatchTest(unittest.TestCase):
-
     def test_stopwatch_with_pct_timer(self):
         r = Registry(Config("memory"))
         t = r.timer("pct_timer")

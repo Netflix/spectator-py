@@ -1,6 +1,6 @@
 import unittest
 
-from spectator import MonotonicCounter, MemoryWriter, MeterId, NoopWriter
+from spectator import MemoryWriter, MeterId, MonotonicCounter, NoopWriter
 
 
 class MonotonicCounterTest(unittest.TestCase):

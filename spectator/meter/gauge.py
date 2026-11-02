@@ -1,5 +1,3 @@
-from typing import Optional
-
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import WriterUnion
@@ -12,15 +10,16 @@ class Gauge(Meter):
     this duration of time. An optional ttl_seconds may be set to control the lifespan of these
     values. SpectatorD enforces a minimum TTL of 5 seconds."""
 
-    def __init__(self, meter_id: MeterId, writer: Optional[WriterUnion] = None,
-                 ttl_seconds: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        meter_id: MeterId,
+        writer: WriterUnion | None = None,
+        ttl_seconds: int | None = None,
+    ) -> None:
         if writer is None:
             writer = NoopWriter()
 
-        if ttl_seconds is None:
-            meter_type_symbol = "g"
-        else:
-            meter_type_symbol = f"g,{ttl_seconds}"
+        meter_type_symbol = "g" if ttl_seconds is None else f"g,{ttl_seconds}"
 
         super().__init__(meter_id, writer, meter_type_symbol)
 

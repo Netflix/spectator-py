@@ -1,10 +1,16 @@
 import unittest
 
-from spectator import Counter, DistinctCountSketch, Gauge, Timer, get_meter_class, parse_protocol_line
+from spectator import (
+    Counter,
+    DistinctCountSketch,
+    Gauge,
+    Timer,
+    get_meter_class,
+    parse_protocol_line,
+)
 
 
 class ProtocolParserTest(unittest.TestCase):
-
     def test_parse_invalid_lines(self):
         self.assertRaises(ValueError, parse_protocol_line, "foo")
         self.assertRaises(ValueError, parse_protocol_line, "foo:bar")

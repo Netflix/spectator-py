@@ -1,5 +1,4 @@
 from os import environ
-from typing import Dict, Optional
 
 from spectator.common_tags import tags_from_env_vars, validate_tags
 
@@ -45,8 +44,13 @@ class Config:
     The `is_global` flag is used to help control logging for the GlobalRegistry.
     """
 
-    def __init__(self, location: str = "udp", extra_common_tags: Optional[Dict[str, str]] = None,
-                 buffer_size: int = 0, is_global: bool = False) -> None:
+    def __init__(
+        self,
+        location: str = "udp",
+        extra_common_tags: dict[str, str] | None = None,
+        buffer_size: int = 0,
+        is_global: bool = False,
+    ) -> None:
         self.location = self.calculate_location(location)
         if extra_common_tags is None:
             extra_common_tags = {}
@@ -58,10 +62,12 @@ class Config:
     def is_valid_output_location(location: str) -> bool:
         if not isinstance(location, str):
             return False
-        return location in ["none", "memory", "stdout", "stderr", "udp", "unix"] or \
-            location.startswith("file://") or \
-            location.startswith("udp://") or \
-            location.startswith("unix://")
+        return (
+            location in ["none", "memory", "stdout", "stderr", "udp", "unix"]
+            or location.startswith("file://")
+            or location.startswith("udp://")
+            or location.startswith("unix://")
+        )
 
     def calculate_location(self, location: str) -> str:
         if not self.is_valid_output_location(location):
@@ -76,7 +82,7 @@ class Config:
         return location
 
     @staticmethod
-    def calculate_extra_common_tags(common_tags: Dict[str, str]) -> Dict[str, str]:
+    def calculate_extra_common_tags(common_tags: dict[str, str]) -> dict[str, str]:
         merged_tags = validate_tags(common_tags)
 
         # merge common tags with env var tags; env vars take precedence

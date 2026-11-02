@@ -1,5 +1,3 @@
-from typing import Optional
-
 from spectator.config import Config
 from spectator.writer import Writer
 
@@ -7,7 +5,7 @@ from spectator.writer import Writer
 class NoopWriter(Writer):
     """Writer that does nothing. Used to disable output."""
 
-    def __init__(self, config: Optional[Config] = None) -> None:
+    def __init__(self, config: Config | None = None) -> None:
         super().__init__()
         if config is not None and config.is_global:
             self._logger.debug("initialize GlobalRegistry NoopWriter")

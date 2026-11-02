@@ -1,6 +1,5 @@
 import logging
 import re
-from typing import Dict, Optional
 
 from spectator.common_tags import validate_tags
 
@@ -12,7 +11,7 @@ class MeterId:
 
     INVALID_CHARS = re.compile("[^-._A-Za-z0-9~^]")
 
-    def __init__(self, name: str, tags: Optional[Dict[str, str]] = None) -> None:
+    def __init__(self, name: str, tags: dict[str, str] | None = None) -> None:
         if tags is None:
             tags = {}
         self._logger = logging.getLogger(__name__)
@@ -20,12 +19,14 @@ class MeterId:
         self._tags = self._validate_tags(tags)
         self.spectatord_id = self._to_spectatord_id(self._name, self._tags)
 
-    def _validate_tags(self, tags: Dict[str, str]) -> Dict[str, str]:
+    def _validate_tags(self, tags: dict[str, str]) -> dict[str, str]:
         valid_tags = validate_tags(tags)
 
         if valid_tags != tags:
-            msg = "MeterId(name=%s, tags=%s) is invalid due to tag keys or values which are not strings " \
-                  "or are zero-length strings; proceeding with truncated tags MeterId(name=%s, tags=%s)"
+            msg = (
+                "MeterId(name=%s, tags=%s) is invalid due to tag keys or values which are not strings "
+                "or are zero-length strings; proceeding with truncated tags MeterId(name=%s, tags=%s)"
+            )
             self._logger.warning(msg, self._name, tags, self._name, valid_tags)
 
         return valid_tags
@@ -33,7 +34,7 @@ class MeterId:
     def _replace_invalid_chars(self, s: str) -> str:
         return self.INVALID_CHARS.sub("_", s)
 
-    def _to_spectatord_id(self, name: str, tags: Optional[Dict[str, str]]) -> str:
+    def _to_spectatord_id(self, name: str, tags: dict[str, str] | None) -> str:
         if tags is None:
             tags = {}
 
@@ -49,7 +50,7 @@ class MeterId:
     def name(self) -> str:
         return self._name
 
-    def tags(self) -> Dict[str, str]:
+    def tags(self) -> dict[str, str]:
         return self._tags.copy()
 
     def with_tag(self, k: str, v: str) -> "MeterId":
@@ -57,7 +58,7 @@ class MeterId:
         new_tags[k] = v
         return MeterId(self._name, new_tags)
 
-    def with_tags(self, tags: Dict[str, str]) -> "MeterId":
+    def with_tags(self, tags: dict[str, str]) -> "MeterId":
         if len(tags) == 0:
             return self
         new_tags = self._tags.copy()

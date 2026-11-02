@@ -1,5 +1,4 @@
 from spectator.writer import Writer
-from typing import List
 
 
 class MemoryWriter(Writer):
@@ -8,7 +7,7 @@ class MemoryWriter(Writer):
     def __init__(self) -> None:
         super().__init__()
         self._logger.info("initialize MemoryWriter")
-        self._messages: List[str] = []
+        self._messages: list[str] = []
 
     def write(self, line: str) -> None:
         self._logger.debug("write line=%s", line)
@@ -17,7 +16,7 @@ class MemoryWriter(Writer):
     def close(self) -> None:
         self._messages.clear()
 
-    def get(self) -> List[str]:
+    def get(self) -> list[str]:
         return self._messages
 
     def clear(self) -> None:

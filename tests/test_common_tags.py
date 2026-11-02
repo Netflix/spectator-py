@@ -1,14 +1,12 @@
 import os
 import unittest
-from typing import Dict
 
 from spectator.common_tags import tags_from_env_vars, validate_tags
 
 
 class CommonTagsTest(unittest.TestCase):
-
     @staticmethod
-    def all_expected_tags() -> Dict[str, str]:
+    def all_expected_tags() -> dict[str, str]:
         return {
             "nf.container": "main",
             "nf.process": "python",
@@ -21,13 +19,14 @@ class CommonTagsTest(unittest.TestCase):
 
     @staticmethod
     def clear_environment() -> None:
-        keys = ["NETFLIX_CONTAINER_NAME", "NETFLIX_PROCESS_NAME", "TITUS_CONTAINER_NAME"]
+        keys = [
+            "NETFLIX_CONTAINER_NAME",
+            "NETFLIX_PROCESS_NAME",
+            "TITUS_CONTAINER_NAME",
+        ]
 
         for key in keys:
-            try:
-                del os.environ[key]
-            except KeyError:
-                pass
+            os.environ.pop(key, None)
 
     def setUp(self) -> None:
         self.clear_environment()

@@ -1,13 +1,10 @@
-from typing import List
-
-
 class LineBuffer:
     """Line buffer for Writers, sized in UTF-8 bytes including newline separators."""
 
     def __init__(self, max_size: int) -> None:
         self._size: int = 0
         self._max_size: int = max_size
-        self._lines: List[str] = []
+        self._lines: list[str] = []
 
     def __len__(self) -> int:
         return self._size

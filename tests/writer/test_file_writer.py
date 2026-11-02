@@ -10,7 +10,6 @@ from spectator import Config, FileWriter
 
 
 class FileWriterTest(unittest.TestCase):
-
     def test_file_writer_escaped_path(self):
         with TemporaryDirectory() as tmpdir:
             tmp_file = os.path.join(tmpdir, "metrics space #%25.txt")
@@ -34,10 +33,9 @@ class FileWriterTest(unittest.TestCase):
 
     def test_file_writer_stderr(self):
         f = io.StringIO()
-        with redirect_stderr(f):
-            with closing(FileWriter(Config("stderr"))) as w:
-                w.write("foo")
-                self.assertEqual("foo\n", f.getvalue())
+        with redirect_stderr(f), closing(FileWriter(Config("stderr"))) as w:
+            w.write("foo")
+            self.assertEqual("foo\n", f.getvalue())
 
     def test_file_writer_close_leaves_std_streams_open(self):
         f = io.StringIO()
@@ -50,14 +48,16 @@ class FileWriterTest(unittest.TestCase):
 
     def test_file_writer_stdout(self):
         f = io.StringIO()
-        with redirect_stdout(f):
-            with closing(FileWriter(Config("stdout"))) as w:
-                w.write("foo")
-                self.assertEqual("foo\n", f.getvalue())
+        with redirect_stdout(f), closing(FileWriter(Config("stdout"))) as w:
+            w.write("foo")
+            self.assertEqual("foo\n", f.getvalue())
 
     def test_file_writer_writes_each_line_in_one_call(self):
         f = io.StringIO()
-        with redirect_stdout(f), patch.object(f, "write", wraps=f.write) as write:
-            with closing(FileWriter(Config("stdout"))) as w:
-                w.write("foo")
+        with (
+            redirect_stdout(f),
+            patch.object(f, "write", wraps=f.write) as write,
+            closing(FileWriter(Config("stdout"))) as w,
+        ):
+            w.write("foo")
         write.assert_called_once_with("foo\n")

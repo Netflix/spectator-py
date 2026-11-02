@@ -4,8 +4,9 @@ import socket
 
 
 class UnixServer:
-
-    def __init__(self, path: str = f"/tmp/spectatord-test-{random.randint(1, 10000)}") -> None:
+    def __init__(
+        self, path: str = f"/tmp/spectatord-test-{random.randint(1, 10000)}"
+    ) -> None:
         if os.path.exists(path):
             os.remove(path)
         self._path = path
@@ -13,7 +14,7 @@ class UnixServer:
         self._sock.bind(path)
 
     def address(self) -> str:
-        return "unix://{}".format(self._path)
+        return f"unix://{self._path}"
 
     def read(self) -> str:
         data, _ = self._sock.recvfrom(1024)

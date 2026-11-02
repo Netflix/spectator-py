@@ -1,6 +1,5 @@
 import base64
 import logging
-from typing import Optional, Union
 
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
@@ -22,14 +21,14 @@ class DistinctCountSketch(Meter):
     Each instance publishes a fixed number of gauges, so treat any additional dimensions with the
     same diligence as percentile timers and ensure they have a small bounded cardinality."""
 
-    def __init__(self, meter_id: MeterId, writer: Optional[WriterUnion] = None) -> None:
+    def __init__(self, meter_id: MeterId, writer: WriterUnion | None = None) -> None:
         if writer is None:
             writer = NoopWriter()
 
         super().__init__(meter_id, writer, "S")
         self._logger = logging.getLogger(__name__)
 
-    def record(self, value: Union[int, str, bytes, bytearray]) -> None:
+    def record(self, value: int | str | bytes | bytearray) -> None:
         if isinstance(value, str):
             # Encode as UTF-8 to match the other clients. Unpaired surrogates are replaced with
             # '?' rather than raising, both to honor the never-throw-on-instrumentation convention
@@ -41,15 +40,19 @@ class DistinctCountSketch(Meter):
             # Match the other clients: hash the 8-byte little-endian representation of the value.
             # Values that do not fit in 64 bits cannot be represented consistently, so skip them
             # rather than silently truncating to a colliding value.
-            if not -(2 ** 63) <= value < 2 ** 64:
-                self._logger.warning("DistinctCountSketch.record ignoring out-of-range int")
+            if not -(2**63) <= value < 2**64:
+                self._logger.warning(
+                    "DistinctCountSketch.record ignoring out-of-range int"
+                )
                 return
             data = (value & 0xFFFFFFFFFFFFFFFF).to_bytes(8, "little")
         else:
             # Follow the library convention of not throwing on instrumentation: skip the bad value
             # and warn, rather than risk disrupting the caller.
-            self._logger.warning("DistinctCountSketch.record ignoring unsupported value type: %s",
-                                 type(value).__name__)
+            self._logger.warning(
+                "DistinctCountSketch.record ignoring unsupported value type: %s",
+                type(value).__name__,
+            )
             return
 
         encoded = base64.b64encode(data).decode("ascii")

@@ -1,5 +1,4 @@
 from abc import ABCMeta
-from typing import Optional, Tuple
 
 from spectator.meter.age_gauge import AgeGauge
 from spectator.meter.counter import Counter
@@ -16,25 +15,25 @@ from spectator.meter.timer import Timer
 
 # https://netflix.github.io/atlas-docs/spectator/agent/usage/#metric-types
 _METER_CLASSES = {
-    'A': AgeGauge,
-    'c': Counter,
-    'd': DistributionSummary,
-    'g': Gauge,
-    'm': MaxGauge,
-    'C': MonotonicCounter,
-    'U': MonotonicCounterUint,
-    'D': PercentileDistributionSummary,
-    'S': DistinctCountSketch,
-    'T': PercentileTimer,
-    't': Timer,
+    "A": AgeGauge,
+    "c": Counter,
+    "d": DistributionSummary,
+    "g": Gauge,
+    "m": MaxGauge,
+    "C": MonotonicCounter,
+    "U": MonotonicCounterUint,
+    "D": PercentileDistributionSummary,
+    "S": DistinctCountSketch,
+    "T": PercentileTimer,
+    "t": Timer,
 }
 
 
-def get_meter_class(symbol: str) -> Optional[ABCMeta]:
+def get_meter_class(symbol: str) -> ABCMeta | None:
     return _METER_CLASSES.get(symbol)
 
 
-def parse_protocol_line(line: str) -> Tuple[str, MeterId, str]:
+def parse_protocol_line(line: str) -> tuple[str, MeterId, str]:
     """Parse a SpectatorD protocol line into component parts. Utility exposed for testing."""
     symbol, meter_id, value = line.split(":")
     # remove optional parts, such as gauge ttls

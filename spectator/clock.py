@@ -2,7 +2,7 @@ import abc
 import time
 
 
-class Clock(metaclass=abc.ABCMeta):
+class Clock(metaclass=abc.ABCMeta):  # noqa: B024
     def wall_time(self) -> float:
         raise NotImplementedError
 
@@ -24,6 +24,7 @@ class SystemClock(Clock):
 
 class ManualClock(Clock):
     """Used to enable deterministic unit testing for the StopWatch class."""
+
     def __init__(self, wall_init: float = 0, monotonic_init: float = 0) -> None:
         self._wall = wall_init
         self._monotonic = monotonic_init
