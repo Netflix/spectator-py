@@ -33,7 +33,7 @@ so only release a commit that has passed CI.
    `main` to pass.
 
 2. **Check that `main` has the new version.** The tag must point at a commit whose version matches
-   it, or the publish fails.
+   it. If it doesn't, the Release workflow stops before building and nothing is uploaded.
 
    ```shell
    git fetch origin
@@ -55,6 +55,9 @@ so only release a commit that has passed CI.
 
 ### If the publish fails
 
+- `Tag vX.Y.Z does not match version ... in pyproject.toml` means the version bump was not on `main`
+  when the release was created. Nothing was uploaded: merge the bump, then recreate the release as
+  below.
 - If `X.Y.Z` did not reach PyPI, delete the release and its tag, fix the problem, and create the
   release again:
 
