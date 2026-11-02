@@ -2,7 +2,7 @@
 
 `netflix-spectator-py` is a stateless, stdlib-only Python thin client that turns meter updates into SpectatorD protocol lines and sends them (UDP, Unix socket, file, or memory) to SpectatorD, which aggregates and publishes to Atlas.
 
-- Setup: [README.md](README.md). Releases: [RELEASE_PROCESS.md](RELEASE_PROCESS.md).
+- Setup and releases: [README.md](README.md).
 - User docs live on the Atlas site, not in this repo: https://netflix.github.io/atlas-docs/spectator/lang/py/usage/
 - Protocol reference: https://netflix.github.io/atlas-docs/spectator/agent/usage/
 
@@ -27,7 +27,7 @@
 - CI (`.github/workflows/pr.yml`) runs `make install-deps && make all` on Python 3.10, 3.11, 3.12 and 3.13.
 - Baseline is clean: ruff check and ruff format report nothing, mypy reports no issues, all tests pass. Keep it that way.
 - All packaging and tool config (ruff, mypy, pytest, check-manifest) lives in `pyproject.toml`. There is no `setup.py` or `setup.cfg`.
-- Release: bump `version` in `pyproject.toml`, then push tag `vX.Y.Z` and `release.yml` publishes to PyPI. Never push `v*` tags unless you are releasing.
+- Release: follow "Releasing" in `README.md`. Merge the `version` bump in `pyproject.toml` before creating the `vX.Y.Z` release. A tag on a commit with a different version fails to publish; this is why 1.2.0 never reached PyPI. Never create `v*` tags or releases unless you are releasing.
 
 ## Architecture
 
