@@ -19,6 +19,7 @@
 | Packaging check | `make check-manifest` (check-manifest, `python -m build`, `twine check --strict dist/*`) |
 | Full CI gate | `make all` (clean, test, lint, typecheck, check-manifest) |
 | Coverage report | `make coverage` (opens `htmlcov/index.html` on macOS) |
+| Benchmark | `make benchmark BASELINE=main` (times one meter update in the working tree next to a git revision; `CANDIDATE=<revision>` replaces the working tree) |
 | Build dist | `python -m build --sdist --wheel --outdir dist/ .` |
 | Clean | `make clean` |
 | Migrations | None. No database or schema. |
@@ -26,6 +27,7 @@
 - On macOS, every make target sources `venv/bin/activate`. Run `make setup-venv` first or the targets fail. On Linux they use the ambient Python.
 - CI (`.github/workflows/pr.yml`) runs `make install-deps && make all` on Python 3.10, 3.11, 3.12 and 3.13.
 - Baseline is clean: ruff check and ruff format report nothing, mypy reports no issues, all tests pass. Keep it that way.
+- `make benchmark` is not part of `make all` or CI, because its timings depend on the machine. For a performance change, run `make benchmark BASELINE=main` and quote the table in the PR.
 - All packaging and tool config (ruff, mypy, pytest, check-manifest) lives in `pyproject.toml`. There is no `setup.py` or `setup.cfg`.
 - Release: follow "Releasing" in `README.md`. Merge the `version` bump in `pyproject.toml` before creating the `vX.Y.Z` release. A tag on a commit with a different version fails to publish; this is why 1.2.0 never reached PyPI. `release.yml` now checks the tag against the `pyproject.toml` version (PEP 440, so `v1.3.0-rc.1` matches `1.3.0rc1`) before building. Never create `v*` tags or releases unless you are releasing.
 
@@ -47,6 +49,7 @@ spectator/
     socket_writer.py   UDP/Unix datagram writer, optional LineBuffer + flush thread
     line_buffer.py     Byte-sized line batching
 tests/                 Mirrors package layout; udp_server.py / unix_server.py helpers
+benchmarks/            update_cost.py: times one meter update, side by side with a git revision
 ```
 
 Data flow: `Registry.counter(name, tags)` → `MeterId` (+ extra common tags) → `Counter(id, writer)` → `writer.write("c:<id>:<value>")`. Nothing is aggregated in-process; SpectatorD does that.

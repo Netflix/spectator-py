@@ -61,6 +61,8 @@ testpaths = ["tests"]
 ignore = [
     ".git-blame-ignore-revs",
     "AGENTS.md",
+    "benchmarks*",
+    "benchmarks/**",
     "CLAUDE.md",
     "Makefile",
     "MANIFEST.in",
