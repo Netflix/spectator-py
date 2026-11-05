@@ -3,7 +3,6 @@ from ctypes import c_uint64
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import WriterUnion
-from spectator.writer.noop_writer import NoopWriter
 
 
 class MonotonicCounterUint(Meter):
@@ -13,9 +12,6 @@ class MonotonicCounterUint(Meter):
     the backend."""
 
     def __init__(self, meter_id: MeterId, writer: WriterUnion | None = None) -> None:
-        if writer is None:
-            writer = NoopWriter()
-
         super().__init__(meter_id, writer, "U")
 
     def set(self, amount: c_uint64) -> None:

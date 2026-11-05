@@ -1,7 +1,6 @@
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import WriterUnion
-from spectator.writer.noop_writer import NoopWriter
 
 
 class DistributionSummary(Meter):
@@ -11,9 +10,6 @@ class DistributionSummary(Meter):
     from a query."""
 
     def __init__(self, meter_id: MeterId, writer: WriterUnion | None = None) -> None:
-        if writer is None:
-            writer = NoopWriter()
-
         super().__init__(meter_id, writer, "d")
 
     def record(self, amount: int) -> None:

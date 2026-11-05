@@ -1,7 +1,6 @@
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import WriterUnion
-from spectator.writer.noop_writer import NoopWriter
 
 
 class Gauge(Meter):
@@ -16,9 +15,6 @@ class Gauge(Meter):
         writer: WriterUnion | None = None,
         ttl_seconds: int | None = None,
     ) -> None:
-        if writer is None:
-            writer = NoopWriter()
-
         meter_type_symbol = "g" if ttl_seconds is None else f"g,{ttl_seconds}"
 
         super().__init__(meter_id, writer, meter_type_symbol)

@@ -68,7 +68,7 @@ Data flow: `Registry.counter(name, tags)` â†’ `MeterId` (+ extra common tags) â†
 - Commit subjects are short and imperative with the PR number: `Fix LineBuffer payload byte accounting (#98)`.
 
 ### Adding a meter type
-1. `spectator/meter/<name>.py`: subclass `Meter`, default `writer` to `NoopWriter()`, pass the SpectatorD symbol to `super().__init__`.
+1. `spectator/meter/<name>.py`: subclass `Meter`, default `writer` to `None` (`Meter` substitutes a `NoopWriter`), pass the SpectatorD symbol to `super().__init__`.
 2. Add both factory methods to `Registry`.
 3. Register the symbol in `protocol_parser._METER_CLASSES`.
 4. Import it in `spectator/__init__.py` and add it to `__all__`.
