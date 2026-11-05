@@ -31,6 +31,31 @@ class FileWriterTest(unittest.TestCase):
                 line = f.read()
                 self.assertEqual("foo\n", line)
 
+    def test_file_writer_write_after_close_is_noop(self):
+        with TemporaryDirectory() as tmpdir:
+            tmp_file = os.path.join(tmpdir, "file-writer.txt")
+            writer = FileWriter(Config(f"file://{tmp_file}"))
+            writer.write("foo")
+            writer.close()
+            writer.write("bar")
+
+            with open(tmp_file, encoding="utf-8") as f:
+                self.assertEqual("foo\n", f.read())
+
+    def test_file_writer_write_to_closed_std_stream_is_noop(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            writer = FileWriter(Config("stdout"))
+        f.close()
+        writer.write("foo")
+
+    def test_file_writer_write_keeps_raising_encode_errors(self):
+        stream = io.TextIOWrapper(io.BytesIO(), encoding="ascii")
+        with redirect_stdout(stream):
+            writer = FileWriter(Config("stdout"))
+        with self.assertRaises(UnicodeEncodeError):
+            writer.write("caf\u00e9")
+
     def test_file_writer_stderr(self):
         f = io.StringIO()
         with redirect_stderr(f), closing(FileWriter(Config("stderr"))) as w:

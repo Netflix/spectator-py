@@ -32,6 +32,10 @@ class FileWriter(Writer):
             self._file.write(line + "\n")
         except OSError:
             self._logger.error("failed to write line=%s", line)
+        except ValueError:
+            # writes after close are no-ops; UnicodeEncodeError is also a ValueError
+            if not self._file.closed:
+                raise
 
     def close(self) -> None:
         # stdout and stderr are not owned by this writer, so only flush them
