@@ -1,7 +1,6 @@
 from spectator.meter import Meter
 from spectator.meter.meter_id import MeterId
 from spectator.writer.new_writer import WriterUnion
-from spectator.writer.noop_writer import NoopWriter
 
 
 class AgeGauge(Meter):
@@ -12,9 +11,6 @@ class AgeGauge(Meter):
     Last Success alerting pattern."""
 
     def __init__(self, meter_id: MeterId, writer: WriterUnion | None = None) -> None:
-        if writer is None:
-            writer = NoopWriter()
-
         super().__init__(meter_id, writer, "A")
 
     def now(self) -> None:
