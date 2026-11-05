@@ -115,5 +115,16 @@ else
 	coverage html
 endif
 
+BENCHMARK_ARGS := $(if $(BASELINE),--baseline $(BASELINE)) $(if $(CANDIDATE),--candidate $(CANDIDATE))
+
+## benchmark: time one meter update; BASELINE=<git revision> adds a side-by-side column
+.PHONY: benchmark
+benchmark:
+ifeq ($(SYSTEM), Darwin)
+	$(ACTIVATE) python benchmarks/update_cost.py $(BENCHMARK_ARGS)
+else
+	python benchmarks/update_cost.py $(BENCHMARK_ARGS)
+endif
+
 # DEBUG: print out a a variable via `make print-FOO`
 print-%: ; @echo $* = $($*)
