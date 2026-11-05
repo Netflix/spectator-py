@@ -4,7 +4,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from spectator import Config, MemoryWriter, Registry
+from spectator import Config, MemoryWriter, MeterId, Registry
 
 
 class RegistryTest(unittest.TestCase):
@@ -267,6 +267,44 @@ class RegistryTest(unittest.TestCase):
         r2 = Registry(Config("memory", {"extra-tags": "foo"}))
         id2 = r2.new_id("id")
         self.assertEqual("MeterId(name=id, tags={'extra-tags': 'foo'})", str(id2))
+
+    def test_new_id_builds_one_meter_id(self):
+        # an id is built on every Registry.<meter>() call, so the extra common tags must not
+        # cost a second MeterId
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        with patch.object(
+            MeterId, "__init__", autospec=True, side_effect=MeterId.__init__
+        ) as init:
+            id1 = r.new_id("id")
+            id2 = r.new_id("id", {"my-tags": "bar"})
+
+        self.assertEqual(2, init.call_count)
+        self.assertEqual("id,extra-tags=foo", id1.spectatord_id)
+        self.assertEqual("id,extra-tags=foo,my-tags=bar", id2.spectatord_id)
+
+    def test_new_id_extra_common_tags_replace_tags(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        id1 = r.new_id("id", {"extra-tags": "bar", "my-tags": "bar"})
+        self.assertEqual({"extra-tags": "foo", "my-tags": "bar"}, id1.tags())
+        self.assertEqual("id,extra-tags=foo,my-tags=bar", id1.spectatord_id)
+
+        id2 = r.new_id("id", {})
+        self.assertEqual("id,extra-tags=foo", id2.spectatord_id)
+
+    def test_new_id_with_invalid_tags(self):
+        r = Registry(Config("memory", {"extra-tags": "foo"}))
+
+        expected_messages = [
+            "WARNING:spectator.meter.meter_id:MeterId(name=id, tags={'k': '', 'my-tags': 'bar'}) is invalid due to tag keys or values which are not strings or are zero-length strings; proceeding with truncated tags MeterId(name=id, tags={'my-tags': 'bar'})",
+        ]
+
+        with self.assertLogs("spectator.meter.meter_id", level="INFO") as logs:
+            id1 = r.new_id("id", {"k": "", "my-tags": "bar"})
+
+        self.assertEqual(expected_messages, logs.output)
+        self.assertEqual("id,extra-tags=foo,my-tags=bar", id1.spectatord_id)
 
     def test_pct_distribution_summary(self):
         r = Registry(Config("memory"))

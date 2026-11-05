@@ -1,5 +1,6 @@
 import logging
 
+from spectator.common_tags import validate_tags
 from spectator.config import Config
 from spectator.meter.age_gauge import AgeGauge
 from spectator.meter.counter import Counter
@@ -49,15 +50,20 @@ class Registry:
     def new_id(self, name: str, tags: dict | None = None) -> MeterId:
         """Create a new MeterId, which applies any configured extra common tags,
         and can be used as an input to the *_with_id Registry methods."""
+        common_tags = self._config.extra_common_tags
+        if not common_tags:
+            return MeterId(name, tags)
         if tags is None:
-            tags = {}
+            return MeterId(name, common_tags)
 
-        new_meter_id = MeterId(name, tags)
+        merged_tags = validate_tags(tags)
+        if merged_tags == tags:
+            # nothing is dropped from tags, so add the common tags and build the id once
+            merged_tags.update(common_tags)
+            return MeterId(name, merged_tags)
 
-        if len(self._config.extra_common_tags) > 0:
-            new_meter_id = new_meter_id.with_tags(self._config.extra_common_tags)
-
-        return new_meter_id
+        # MeterId warns about the tags it drops, and that warning names only the caller's tags
+        return MeterId(name, tags).with_tags(common_tags)
 
     def age_gauge(self, name: str, tags: dict | None = None) -> AgeGauge:
         return AgeGauge(self.new_id(name, tags), self._writer)

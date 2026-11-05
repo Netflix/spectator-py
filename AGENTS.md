@@ -100,6 +100,7 @@ Subclass `Writer`. Add it to `WriterUnion` and `new_writer`, add the location to
 - Match locations by scheme prefix (`startswith("udp://")`), never by substring. A Unix path containing `udp` was once misrouted (#93).
 - `file://` paths are percent-decoded with `unquote` (#97).
 - A `MeterId(...)` built directly skips extra common tags. Use `Registry.new_id()`. The `*_with_id()` methods do not add common tags.
+- `Registry.new_id()` builds the `MeterId` once, from the caller's tags merged with the extra common tags. Never go back to `MeterId(name, tags).with_tags(...)` on that path; it builds every id twice.
 
 ### Writers & threading
 - `SocketWriter._lock` is an `RLock` so that `close()` called from a signal handler cannot deadlock. Never change it to a `Lock`.
