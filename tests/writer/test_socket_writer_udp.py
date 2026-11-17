@@ -67,3 +67,21 @@ class SocketWriterUdpTest(unittest.TestCase):
             t.join(5)
             self.assertFalse(t.is_alive())
             self.assertEqual("foo", server.read())
+
+    def test_udp_missing_host_uses_localhost(self) -> None:
+        with closing(UdpServer()) as server:
+            port = server.address().rsplit(":", 1)[1]
+            with closing(SocketWriter(Config(f"udp://:{port}"))) as w:
+                w.write("foo")
+                self.assertEqual("foo", server.read())
+
+    def test_udp_missing_port_uses_spectatord_default(self) -> None:
+        for location, host in [
+            ("udp://", "127.0.0.1"),
+            ("udp://localhost", "localhost"),
+            ("udp://[::1]", "::1"),
+        ]:
+            with closing(SocketWriter(Config(location))) as w:
+                self.assertEqual((host, 1234), w._address)
+                # instrumentation calls must not raise
+                w.write("foo")

@@ -54,12 +54,13 @@ class SocketWriter(Writer):
 
     def _init_udp(self, location: str):
         parsed = urlparse(location)
-        self._address: SocketAddress = (parsed.hostname, parsed.port)
+        # a missing host or port falls back to the spectatord default, as for the "udp" location,
+        # because socket.sendto raises TypeError (not OSError) on a None host or port
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port if parsed.port is not None else 1234
+        self._address: SocketAddress = (host, port)
         try:
-            if (
-                self._address[0] is not None
-                and type(ip_address(self._address[0])) is IPv6Address
-            ):
+            if type(ip_address(host)) is IPv6Address:
                 self._family = socket.AF_INET6
             else:
                 self._family = socket.AF_INET
